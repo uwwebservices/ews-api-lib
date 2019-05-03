@@ -1,0 +1,22 @@
+pool:
+  vmImage: 'Ubuntu 16.04'
+
+steps:
+  - task: Npm@1
+    displayName: 'npm install'
+    inputs:
+      verbose: false
+
+  - task: Npm@1
+    displayName: 'npm run build'
+    inputs:
+      command: custom
+      verbose: false
+      customCommand: 'run build'
+
+  - task: Npm@1
+    displayName: 'npm prune'
+    inputs:
+      command: custom
+      verbose: false
+      customCommand: 'prune --production'

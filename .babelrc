@@ -1,0 +1,25 @@
+{
+  "comments": false,
+  "presets": [
+    [
+      "env",
+      {
+        "targets": {
+          "node": "8.10"
+        }
+      }
+    ]
+  ],
+  "plugins": [
+    [
+      "syntax-object-rest-spread",
+      "module-resolver",
+      {
+        "alias": {
+          "src": "./src",
+          "config": "./config"
+        }
+      }
+    ]
+  ]
+}
