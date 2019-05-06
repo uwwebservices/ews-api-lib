@@ -119,7 +119,6 @@ export default {
       })
     );
 
-    console.log(`Deleted ${groups.length} groups in ${(+new Date() - +start).toString()}ms`);
     return deletedGroups;
   },
 
