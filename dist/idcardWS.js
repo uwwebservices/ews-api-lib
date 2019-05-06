@@ -25,13 +25,13 @@ exports.default = {
     this.Config.baseUrl = baseUrl;
   },
 
-  async Get(magstrip = '', rfid = '') {
+  async GetRegID(magstrip = '', rfid = '') {
     const request = this.CreateRequest(`${this.Config.baseUrl}/card.json?mag_strip_code=${magstrip}&prox_rfid=${rfid}`, this.Config.certificate);
 
     try {
       return (await (0, _requestPromise2.default)(request)).Cards[0].RegID;
     } catch (ex) {
-      console.log('GetCard Error', ex);
+      console.log('GetRegID Error', ex);
       return '';
     }
   },
@@ -40,21 +40,21 @@ exports.default = {
     const request = this.CreateRequest(`${this.Config.baseUrl}/photo/${regid}-${size}.jpg`, this.Config.certificate);
 
     try {
-      let res = await (0, _requestPromise2.default)(request);
-      return Buffer.from(res);
+      return Buffer.from((await (0, _requestPromise2.default)(request)));
     } catch (ex) {
-      console.log(`Error fetching photo: ${ex}`);
+      console.log('GetPhoto Error', ex);
       return null;
     }
   },
 
-  CreateRequest(url, certificate, method = 'GET', body = {}) {
+  CreateRequest(url, certificate, method = 'GET', body = {}, encoding = null) {
     return {
       method,
       url,
       body,
       json: true,
       time: true,
+      encoding,
       ca: [certificate.ca],
       agentOptions: {
         pfx: certificate.pfx,

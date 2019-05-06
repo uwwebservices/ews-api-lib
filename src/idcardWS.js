@@ -28,13 +28,13 @@ export default {
    * @param {string} rfid - The rfid of the card to lookup
    * @returns {Promise<string>} - The UWRegID of the person or an empty string
    */
-  async Get(magstrip = '', rfid = '') {
+  async GetRegID(magstrip = '', rfid = '') {
     const request = this.CreateRequest(`${this.Config.baseUrl}/card.json?mag_strip_code=${magstrip}&prox_rfid=${rfid}`, this.Config.certificate);
 
     try {
       return (await rp(request)).Cards[0].RegID;
     } catch (ex) {
-      console.log('GetCard Error', ex);
+      console.log('GetRegID Error', ex);
       return '';
     }
   },
@@ -49,10 +49,9 @@ export default {
     const request = this.CreateRequest(`${this.Config.baseUrl}/photo/${regid}-${size}.jpg`, this.Config.certificate);
 
     try {
-      let res = await rp(request);
-      return Buffer.from(res);
+      return Buffer.from(await rp(request));
     } catch (ex) {
-      console.log(`Error fetching photo: ${ex}`);
+      console.log('GetPhoto Error', ex);
       return null;
     }
   },
@@ -65,13 +64,14 @@ export default {
    * @param {any} body
    * @returns {Request}
    */
-  CreateRequest(url, certificate, method = 'GET', body = {}) {
+  CreateRequest(url, certificate, method = 'GET', body = {}, encoding = null) {
     return {
       method,
       url,
       body,
       json: true,
       time: true,
+      encoding,
       ca: [certificate.ca],
       agentOptions: {
         pfx: certificate.pfx,
@@ -83,4 +83,4 @@ export default {
 };
 
 /** @typedef {{ certificate: import('./cert').Pfx, baseUrl: string }} Config */
-/** @typedef {{ method: string, url: string, body: any, json: boolean, time: boolean, ca: string[], agentOptions: { pfx: string, passphrase: string, securityOptions: string }}} Request */
+/** @typedef {{ method: string, url: string, body: any, json: boolean, time: boolean, encoding: string, ca: string[], agentOptions: { pfx: string, passphrase: string, securityOptions: string }}} Request */

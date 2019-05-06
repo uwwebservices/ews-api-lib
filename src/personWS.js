@@ -32,6 +32,7 @@ export default {
     try {
       return await rp(request);
     } catch (ex) {
+      console.log('Get Error', ex);
       return null;
     }
   },
@@ -65,6 +66,7 @@ export default {
       try {
         res = await rp(request);
       } catch (ex) {
+        console.log('GetMany Error', ex);
         for (let _ of ids) {
           res.Persons.push(null);
         }

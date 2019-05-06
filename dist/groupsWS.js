@@ -74,11 +74,40 @@ exports.default = {
     return infoGroups;
   },
 
-  async Delete(groups) {
+  async GetHistory(group) {
+    let history = [];
+    let start = 0;
+    let fetchHistory = true;
+
+    while (fetchHistory) {
+      const timerStart = new Date();
+      const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}/history?activity=membership&order=a&start=${start}`, this.Config.certificate);
+      try {
+        let res = await (0, _requestPromise2.default)(request);
+        console.log(`Got partial history for a group (${group}) in ${(+new Date() - +timerStart).toString()}ms`);
+
+        if (!res || !res.data || res.data.length == 0) {
+          fetchHistory = false;
+          break;
+        }
+
+        history = history.concat(res.data);
+        start = res.data.reduce((prev, current) => {
+          return prev > current.timestamp ? prev : current.timestamp + 1;
+        }, start);
+      } catch (ex) {
+        return null;
+      }
+    }
+
+    return history;
+  },
+
+  async Delete(groups, synchronized = false) {
     const deletedGroups = [];
     await Promise.all(groups.map(group => {
       const start = new Date();
-      const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}`, this.Config.certificate, 'DELETE');
+      const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}?synchronized=${synchronized}`, this.Config.certificate, 'DELETE');
       return (0, _requestPromise2.default)(request).then(resp => {
         console.log(`Deleted a group (${group}) in ${(+new Date() - +start).toString()}ms`);
         if (Array.isArray(resp.errors) && resp.errors.length > 0 && resp.errors[0].status === 200) {

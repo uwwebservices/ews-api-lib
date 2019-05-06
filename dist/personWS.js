@@ -30,6 +30,7 @@ exports.default = {
     try {
       return await (0, _requestPromise2.default)(request);
     } catch (ex) {
+      console.log('Get Error', ex);
       return null;
     }
   },
@@ -54,6 +55,7 @@ exports.default = {
       try {
         res = await (0, _requestPromise2.default)(request);
       } catch (ex) {
+        console.log('GetMany Error', ex);
         for (let _ of ids) {
           res.Persons.push(null);
         }

@@ -95,17 +95,53 @@ export default {
   },
 
   /**
+   * Get history data for a specific group
+   * @param {string} group - The group for which to get history
+   * @returns {Promise<UWGroupHistory[]>} - The group history
+   */
+  async GetHistory(group) {
+    let history = [];
+    let start = 0;
+    let fetchHistory = true;
+
+    while (fetchHistory) {
+      const timerStart = new Date();
+      const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}/history?activity=membership&order=a&start=${start}`, this.Config.certificate);
+      try {
+        let res = await rp(request);
+        console.log(`Got partial history for a group (${group}) in ${(+new Date() - +timerStart).toString()}ms`);
+
+        // Breakout if no data available
+        if (!res || !res.data || res.data.length == 0) {
+          fetchHistory = false;
+          break;
+        }
+
+        history = history.concat(res.data);
+        start = res.data.reduce((prev, current) => {
+          return prev > current.timestamp ? prev : current.timestamp + 1;
+        }, start);
+      } catch (ex) {
+        return null;
+      }
+    }
+
+    return history;
+  },
+
+  /**
    * Delete groups in GroupsWS.
    * @param {string[]} groups - The groups to delete in GroupsWS.
+   * @param {boolean} synchronized - The synchronized flag
    * @returns {Promise<string[]>} - An array of groups deleted in GroupsWS.
    */
-  async Delete(groups) {
+  async Delete(groups, synchronized = false) {
     /** @type {string[]} */
     const deletedGroups = [];
     await Promise.all(
       groups.map(group => {
         const start = new Date();
-        const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}`, this.Config.certificate, 'DELETE');
+        const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}?synchronized=${synchronized}`, this.Config.certificate, 'DELETE');
         return rp(request)
           .then(resp => {
             console.log(`Deleted a group (${group}) in ${(+new Date() - +start).toString()}ms`);
@@ -148,5 +184,6 @@ export default {
 };
 
 /** @typedef {{ id: string, created: number }} UWGroup */
+/** @typedef {{ id: string, description: string, timestamp: number }} UWGroupHistory */
 /** @typedef {{ certificate: import('./cert').Pfx, baseUrl: string }} Config */
 /** @typedef {{ method: string, url: string, body: any, json: boolean, time: boolean, ca: string[], agentOptions: { pfx: string, passphrase: string, securityOptions: string }}} Request */
