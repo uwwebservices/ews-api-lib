@@ -46,8 +46,7 @@ exports.default = {
     };
 
     const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}/member`, this.Config.certificate, 'PUT', newMembers);
-
-    let start = new Date();
+    const start = new Date();
     let response = await (0, _requestPromise2.default)(request);
     console.log(`Added ${members.length} users/groups to ${group} in ${(+new Date() - +start).toString()}ms`);
 
@@ -57,8 +56,10 @@ exports.default = {
   async Info(groups) {
     const infoGroups = [];
     await Promise.all(groups.map(group => {
-      const searchOpts = this.CreateRequest(`${this.Config.baseUrl}/group/${group}`, this.Config.certificate);
-      return (0, _requestPromise2.default)(searchOpts).then(resp => {
+      const start = new Date();
+      const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}`, this.Config.certificate);
+      return (0, _requestPromise2.default)(request).then(resp => {
+        console.log(`Got info for a group (${group}) in ${(+new Date() - +start).toString()}ms`);
         const wsGroup = resp.data;
 
         infoGroups.push({
@@ -76,8 +77,10 @@ exports.default = {
   async Delete(groups) {
     const deletedGroups = [];
     await Promise.all(groups.map(group => {
-      const deleteGroupOpts = this.CreateRequest(`${this.Config.baseUrl}/group/${group}`, this.Config.certificate);
-      return (0, _requestPromise2.default)(deleteGroupOpts).then(resp => {
+      const start = new Date();
+      const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}`, this.Config.certificate, 'DELETE');
+      return (0, _requestPromise2.default)(request).then(resp => {
+        console.log(`Deleted a group (${group}) in ${(+new Date() - +start).toString()}ms`);
         if (Array.isArray(resp.errors) && resp.errors.length > 0 && resp.errors[0].status === 200) {
           deletedGroups.push(group);
         }
@@ -86,6 +89,7 @@ exports.default = {
       });
     }));
 
+    console.log(`Deleted ${groups.length} groups in ${(+new Date() - +start).toString()}ms`);
     return deletedGroups;
   },
 
