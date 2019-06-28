@@ -27,7 +27,10 @@ export default {
    * @param {string} identifier - The identifer (UWNetID or UWRegID) of the person to lookup
    * @returns {Promise<UWPerson>} - Data representing a person or null
    */
-  async Get(identifier) {
+  async Get(identifier, full = false) {
+    if (full) {
+      identifier = identifier + '/full';
+    }
     const request = this.CreateRequest(`${this.Config.baseUrl}/person/${identifier}.json`, this.Config.certificate);
     try {
       return await rp(request);
