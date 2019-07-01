@@ -87,6 +87,28 @@ export default {
   },
 
   /**
+   * PWS Search by query
+   * @param {string} query - The identifer (UWNetID or UWRegID) of the person to lookup
+   * @returns {Promise<UWPerson[]>} - Data representing a person or empty list
+   */
+  async Search(query) {
+    // https://wseval.s.uw.edu/identity/v2/person.json?department=*NWH*&employeeAffiliationState=current
+    const request = this.CreateRequest(`${this.Config.baseUrl}/person.json?${query}`, this.Config.certificate);
+    let res = {
+      /** @type {UWPerson[]} */
+      Persons: []
+    };
+
+    try {
+      res = await rp(request);
+    } catch (ex) {
+      console.log('Search Error', ex);
+    }
+
+    return res.Persons;
+  },
+
+  /**
    * Default configuration for an API request
    * @param {string} url
    * @param {import('./cert').Pfx} certificate
