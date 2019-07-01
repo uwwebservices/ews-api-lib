@@ -75,6 +75,21 @@ exports.default = {
     return filtered;
   },
 
+  async Search(query, pageSize = '10', pageStart = '1') {
+    const request = this.CreateRequest(`${this.Config.baseUrl}/person.json?${query}&PageSize=${pageSize}&PageStart=${pageStart}`, this.Config.certificate);
+    let res = {
+      Persons: []
+    };
+
+    try {
+      res = await (0, _requestPromise2.default)(request);
+    } catch (ex) {
+      console.log('Search Error', ex);
+    }
+
+    return res.Persons;
+  },
+
   CreateRequest(url, certificate, method = 'GET', body = {}) {
     return {
       method,
