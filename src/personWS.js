@@ -91,13 +91,19 @@ export default {
    * @param {string} query - The identifer (UWNetID or UWRegID) of the person to lookup
    * @param {string} pageSize - How large of a page (max: 250)
    * @param {string} pageStart - What page to start on
-   * @returns {Promise<UWPerson[]>} - Data representing a person or empty list
+   * @returns {Promise<PWSSearchResult>} - Data representing a person or empty list
    */
   async Search(query, pageSize = '10', pageStart = '1') {
-    const request = this.CreateRequest(`${this.Config.baseUrl}/person.json?${query}&PageSize=${pageSize}&PageStart=${pageStart}`, this.Config.certificate);
+    const request = this.CreateRequest(`${this.Config.baseUrl}/person.json?${query}&page_size=${pageSize}&page_start=${pageStart}`, this.Config.certificate);
     let res = {
       /** @type {UWPerson[]} */
-      Persons: []
+      Persons: [],
+      /** @type {string} */
+      TotalCount: '',
+      /** @type {string} */
+      Size: '',
+      /** @type {string} */
+      PageStart: ''
     };
 
     try {
@@ -106,7 +112,7 @@ export default {
       console.log('Search Error', ex);
     }
 
-    return res.Persons;
+    return res;
   },
 
   /**
@@ -134,6 +140,7 @@ export default {
   }
 };
 
+/** @typedef {{ Persons: UWPerson[], TotalCount: string, Size: string, PageStart: string}} PWSSearchResult */
 /** @typedef {{ UWNetID: string, UWRegID: string, DisplayName: string, EduPersonAffiliations: string[] }} UWPerson */
 /** @typedef {{ certificate: import('./cert').Pfx, baseUrl: string }} Config */
 /** @typedef {{ method: string, url: string, body: any, json: boolean, time: boolean, ca: string[], agentOptions: { pfx: string, passphrase: string, securityOptions: string }}} Request */
