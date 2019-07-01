@@ -76,9 +76,15 @@ exports.default = {
   },
 
   async Search(query, pageSize = '10', pageStart = '1') {
-    const request = this.CreateRequest(`${this.Config.baseUrl}/person.json?${query}&PageSize=${pageSize}&PageStart=${pageStart}`, this.Config.certificate);
+    const request = this.CreateRequest(`${this.Config.baseUrl}/person.json?${query}&page_size=${pageSize}&page_start=${pageStart}`, this.Config.certificate);
     let res = {
-      Persons: []
+      Persons: [],
+
+      TotalCount: '',
+
+      Size: '',
+
+      PageStart: ''
     };
 
     try {
@@ -87,7 +93,7 @@ exports.default = {
       console.log('Search Error', ex);
     }
 
-    return res.Persons;
+    return res;
   },
 
   CreateRequest(url, certificate, method = 'GET', body = {}) {
