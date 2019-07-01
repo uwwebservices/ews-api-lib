@@ -94,7 +94,6 @@ export default {
    * @returns {Promise<UWPerson[]>} - Data representing a person or empty list
    */
   async Search(query, pageSize = '10', pageStart = '1') {
-    // https://wseval.s.uw.edu/identity/v2/person.json?department=*NWH*&employeeAffiliationState=current
     const request = this.CreateRequest(`${this.Config.baseUrl}/person.json?${query}&PageSize=${pageSize}&PageStart=${pageStart}`, this.Config.certificate);
     let res = {
       /** @type {UWPerson[]} */
