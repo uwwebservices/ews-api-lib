@@ -25,7 +25,10 @@ exports.default = {
     this.Config.baseUrl = baseUrl;
   },
 
-  async Get(identifier) {
+  async Get(identifier, full = false) {
+    if (full) {
+      identifier = identifier + '/full';
+    }
     const request = this.CreateRequest(`${this.Config.baseUrl}/person/${identifier}.json`, this.Config.certificate);
     try {
       return await (0, _requestPromise2.default)(request);
