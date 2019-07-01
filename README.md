@@ -33,6 +33,7 @@ Groups: `GroupsWebService.Setup(certificate, 'https://groups.uw.edu/group_sws/v3
 
 `PersonWebService.Get('identifier');`  
 `PersonWebService.GetMany(['identifiers']);`
+`PersonWebService.Search('query');`
 
 `GroupsWebService.Search('groupStem', 'depth', 'extraQueryParams');`  
 `GroupsWebService.UpdateMembers('groupName', ['members']);`  
@@ -62,6 +63,6 @@ Groups: `GroupsWebService.Setup(certificate, 'https://groups.uw.edu/group_sws/v3
 
 - Certificates - A utility to load certificates; current functionality limited to getting certificates from S3.
 - Groups Web Service - search groups, get group info, update members, get group history, delete group
-- Person Web Service - get one or many users by netid/eid/regid
+- Person Web Service - get one or many users by netid/eid/regid, search by query string
 - HRP Web Service - get one user by netid/eid/regid
 - IDCard Web Service - get regid from magstripe/rfid, get photo by regid
