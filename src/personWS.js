@@ -89,11 +89,13 @@ export default {
   /**
    * PWS Search by query
    * @param {string} query - The identifer (UWNetID or UWRegID) of the person to lookup
+   * @param {string} pageSize - How large of a page (max: 250)
+   * @param {string} pageStart - What page to start on
    * @returns {Promise<UWPerson[]>} - Data representing a person or empty list
    */
-  async Search(query) {
+  async Search(query, pageSize = '10', pageStart = '1') {
     // https://wseval.s.uw.edu/identity/v2/person.json?department=*NWH*&employeeAffiliationState=current
-    const request = this.CreateRequest(`${this.Config.baseUrl}/person.json?${query}`, this.Config.certificate);
+    const request = this.CreateRequest(`${this.Config.baseUrl}/person.json?${query}&PageSize=${pageSize}&PageStart=${pageStart}`, this.Config.certificate);
     let res = {
       /** @type {UWPerson[]} */
       Persons: []
