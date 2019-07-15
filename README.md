@@ -24,7 +24,7 @@ or
 `const certificate = await Certificate.GetPFXFromS3('s3-bucket-name','cert-file.pfx', 'cert-key-file.key', 'uw-ca-file.pem');`
 
 ### Local FS Storage
- `const certificate = Certificate.GetPFXFromFS('path to pfx', 'path to passphrase', 'path to uwca cert', 'path to incommon cert');
+ `const certificate = Certificate.GetPFXFromFS('path to pfx', 'path to passphrase', 'path to uwca cert', 'path to incommon cert');`
 
 ### Use Certificate Object to setup WS
 
