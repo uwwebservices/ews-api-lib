@@ -55,8 +55,8 @@ or
 ### PWS
 
 `PersonWebService.Get('identifier');`  
-`PersonWebService.GetMany(['identifiers']);`
-`PersonWebService.Search('query');`
+`PersonWebService.GetMany(['identifiers']);`  
+`PersonWebService.Search('query');`  
 
 ## Updating ews-api-lib
 
