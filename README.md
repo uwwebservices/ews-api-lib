@@ -18,7 +18,7 @@ or
 `const GroupsWebService = require('ews-api-lib').GroupsWebService;`  
 `const IDCardWebService = require('ews-api-lib').IDCardWebService;`
 
-### Get a Certificate Object
+## Get a Certificate Object
 
 ### S3 Bucket Storage
 `const certificate = await Certificate.GetPFXFromS3('s3-bucket-name','cert-file.pfx', 'cert-key-file.key', 'uw-ca-file.pem');`
