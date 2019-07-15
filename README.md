@@ -1,6 +1,6 @@
 # EWS API Library
 
-Library to extract common API calls to UW Web Services into a library using UW certificate stored in S3.
+Library to extract common API calls to UW Web Services into a library using UW certificate stored in S3 or locally.
 
 ## Usage
 
@@ -20,7 +20,11 @@ or
 
 ### Get a Certificate Object
 
+### S3 Bucket Storage
 `const certificate = await Certificate.GetPFXFromS3('s3-bucket-name','cert-file.pfx', 'cert-key-file.key', 'uw-ca-file.pem');`
+
+### Local FS Storage
+ `const certificate = Certificate.GetPFXFromFS('path to pfx', 'path to passphrase', 'path to uwca cert', 'path to incommon cert');
 
 ### Use Certificate Object to setup WS
 
