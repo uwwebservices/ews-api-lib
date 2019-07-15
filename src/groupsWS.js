@@ -7,19 +7,23 @@ export default {
     certificate: {
       pfx: null,
       passphrase: null,
-      ca: null
+      ca: null,
+      incommon: null
     },
-    baseUrl: ''
+    baseUrl: '',
+    fullResponse: false
   },
 
   /**
    * Initial setup for GroupsWS library
    * @param {import('./cert').Pfx} certificate
    * @param {string} baseUrl
+   * @param {boolean} fullResponse
    */
-  Setup(certificate, baseUrl) {
+  Setup(certificate, baseUrl, fullResponse = false) {
     this.Config.certificate = certificate;
     this.Config.baseUrl = baseUrl;
+    this.Config.fullResponse = fullResponse;
   },
 
   /**
@@ -164,26 +168,35 @@ export default {
    * @param {import('./cert').Pfx} certificate
    * @param {string} method
    * @param {any} body
+   * @param {boolean} fullResponse
    * @returns {Request}
    */
   CreateRequest(url, certificate, method = 'GET', body = {}) {
-    return {
+    let options = {
       method,
       url,
       body,
       json: true,
       time: true,
-      ca: [certificate.ca],
+      ca: [],
       agentOptions: {
         pfx: certificate.pfx,
         passphrase: certificate.passphrase,
         securityOptions: 'SSL_OP_NO_SSLv3'
-      }
+      },
+      resolveWithFullResponse: this.Config.fullResponse
     };
+    if (certificate.ca) {
+      options.ca.push(certificate.ca);
+    }
+    if (certificate.incommon) {
+      options.ca.push(certificate.incommon);
+    }
+    return options;
   }
 };
 
 /** @typedef {{ id: string, created: number }} UWGroup */
 /** @typedef {{ id: string, description: string, timestamp: number }} UWGroupHistory */
-/** @typedef {{ certificate: import('./cert').Pfx, baseUrl: string }} Config */
+/** @typedef {{ certificate: import('./cert').Pfx, baseUrl: string, fullResponse: boolean }} Config */
 /** @typedef {{ method: string, url: string, body: any, json: boolean, time: boolean, ca: string[], agentOptions: { pfx: string, passphrase: string, securityOptions: string }}} Request */
