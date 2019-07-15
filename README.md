@@ -31,7 +31,7 @@ or
 **PWS**: `PersonWebService.Setup(certificate, 'https://wseval.s.uw.edu/identity/v2');`  
 **HRP**: `HRPWebService.Setup(certificate, 'https://wseval.s.uw.edu/hrp/v2');`  
 **IDCard**: `IDCardWebService.Setup(certificate, 'https://wseval.s.uw.edu/idcard/v2');`  
-**Groups**: `GroupsWebService.Setup(certificate, 'https://groups.uw.edu/group_sws/v3/');`
+**Groups**: `GroupsWebService.Setup(certificate, 'https://groups.uw.edu/group_sws/v3');`
 
 ## Make Calls to Web Service
 
