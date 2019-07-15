@@ -12,11 +12,11 @@ Library to extract common API calls to UW Web Services into a library using UW c
 
 or
 
-`const Certificate = require('ews-api-lib').Certificate;`  
-`const PersonWebService = require('ews-api-lib').PersonWebService;`  
-`const HRPWebService = require('ews-api-lib').HRPWebService;`  
-`const GroupsWebService = require('ews-api-lib').GroupsWebService;`  
-`const IDCardWebService = require('ews-api-lib').IDCardWebService;`
+`const Certificate = require('ews-api-lib').default.Certificate;`  
+`const PersonWebService = require('ews-api-lib').default.PersonWebService;`  
+`const HRPWebService = require('ews-api-lib').default.HRPWebService;`  
+`const GroupsWebService = require('ews-api-lib').default.GroupsWebService;`  
+`const IDCardWebService = require('ews-api-lib').default.IDCardWebService;`
 
 ## Get a Certificate Object
 
@@ -28,10 +28,10 @@ or
 
 ### Use Certificate Object to setup WS
 
-PWS: `PersonWebService.Setup(certificate, 'https://wseval.s.uw.edu/identity/v2');`  
-HRP: `HRPWebService.Setup(certificate, 'https://wseval.s.uw.edu/hrp/v2');`  
-IDCard: `IDCardWebService.Setup(certificate, 'https://wseval.s.uw.edu/idcard/v2');`  
-Groups: `GroupsWebService.Setup(certificate, 'https://groups.uw.edu/group_sws/v3/');`
+*PWS*: `PersonWebService.Setup(certificate, 'https://wseval.s.uw.edu/identity/v2');`  
+*HRP*: `HRPWebService.Setup(certificate, 'https://wseval.s.uw.edu/hrp/v2');`  
+*IDCard*: `IDCardWebService.Setup(certificate, 'https://wseval.s.uw.edu/idcard/v2');`  
+*Groups*: `GroupsWebService.Setup(certificate, 'https://groups.uw.edu/group_sws/v3/');`
 
 ## Make Calls to Web Service
 
