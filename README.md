@@ -1,6 +1,6 @@
 # EWS API Library
 
-Library to extract common API calls to EWS Web Services into a library
+Library to extract common API calls to UW Web Services into a library using UW certificate stored in S3.
 
 ## Usage
 
@@ -31,9 +31,7 @@ Groups: `GroupsWebService.Setup(certificate, 'https://groups.uw.edu/group_sws/v3
 
 ## Make Calls to Web Service
 
-`PersonWebService.Get('identifier');`  
-`PersonWebService.GetMany(['identifiers']);`
-`PersonWebService.Search('query');`
+### GWS
 
 `GroupsWebService.Search('groupStem', 'depth', 'extraQueryParams');`  
 `GroupsWebService.UpdateMembers('groupName', ['members']);`  
@@ -41,10 +39,20 @@ Groups: `GroupsWebService.Setup(certificate, 'https://groups.uw.edu/group_sws/v3
 `GroupsWebService.GetHistory('groupName');`  
 `GroupsWebService.Delete('groupName', 'syncFlag')`
 
+### HRPWS
+
 `HRPWebService.Get('idenfitier');`
+
+### IDCard WS
 
 `IDCardWebService.GetRegID('magstripe', 'rfid');`  
 `IDCardWebService.GetPhoto('regid');`
+
+### PWS
+
+`PersonWebService.Get('identifier');`  
+`PersonWebService.GetMany(['identifiers']);`
+`PersonWebService.Search('query');`
 
 ## Updating ews-api-lib
 
@@ -56,13 +64,5 @@ Groups: `GroupsWebService.Setup(certificate, 'https://groups.uw.edu/group_sws/v3
 - Github:
   - Create new release
   - Match version to newly revved version above
-- Install:
+- Update:
   - `npm update ews-api-lib`
-
-## Provided Functionality
-
-- Certificates - A utility to load certificates; current functionality limited to getting certificates from S3.
-- Groups Web Service - search groups, get group info, update members, get group history, delete group
-- Person Web Service - get one or many users by netid/eid/regid, search by query string
-- HRP Web Service - get one user by netid/eid/regid
-- IDCard Web Service - get regid from magstripe/rfid, get photo by regid
