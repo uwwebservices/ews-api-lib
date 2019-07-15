@@ -10,8 +10,7 @@ export default {
       ca: null,
       incommon: null
     },
-    baseUrl: '',
-    fullResponse: false
+    baseUrl: ''
   },
 
   /**
@@ -19,10 +18,9 @@ export default {
    * @param {import('./cert').Pfx} certificate
    * @param {string} baseUrl
    */
-  Setup(certificate, baseUrl, fullResponse = false) {
+  Setup(certificate, baseUrl) {
     this.Config.certificate = certificate;
     this.Config.baseUrl = baseUrl;
-    this.Config.fullResponse = fullResponse;
   },
 
   /**
@@ -65,7 +63,6 @@ export default {
    * @param {import('./cert').Pfx} certificate
    * @param {string} method
    * @param {any} body
-   * @param {boolean} fullResponse
    * @returns {Request}
    */
   CreateRequest(url, certificate, method = 'GET', body = {}, encoding = null) {
@@ -81,8 +78,7 @@ export default {
         pfx: certificate.pfx,
         passphrase: certificate.passphrase,
         securityOptions: 'SSL_OP_NO_SSLv3'
-      },
-      resolveWithFullResponse: this.Config.fullResponse
+      }
     };
     if (certificate.ca) {
       options.ca.push(certificate.ca);
@@ -94,5 +90,5 @@ export default {
   }
 };
 
-/** @typedef {{ certificate: import('./cert').Pfx, baseUrl: string, fullResponse: boolean }} Config */
+/** @typedef {{ certificate: import('./cert').Pfx, baseUrl: string }} Config */
 /** @typedef {{ method: string, url: string, body: any, json: boolean, time: boolean, encoding: string, ca: string[], agentOptions: { pfx: string, passphrase: string, securityOptions: string }}} Request */

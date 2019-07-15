@@ -10,20 +10,17 @@ export default {
       ca: null,
       incommon: null
     },
-    baseUrl: '',
-    fullResponse: false
+    baseUrl: ''
   },
 
   /**
    * Initial setup for GroupsWS library
    * @param {import('./cert').Pfx} certificate
    * @param {string} baseUrl
-   * @param {boolean} fullResponse
    */
-  Setup(certificate, baseUrl, fullResponse = false) {
+  Setup(certificate, baseUrl) {
     this.Config.certificate = certificate;
     this.Config.baseUrl = baseUrl;
-    this.Config.fullResponse = fullResponse;
   },
 
   /**
@@ -49,12 +46,12 @@ export default {
    * @param {string[]} members - The members to add to the group
    * @returns {Promise<boolean>} - An array of groups found with additional information.
    */
-  async UpdateMembers(group, members) {
+  async UpdateMembers(group, members, memberType = 'group') {
     // build the request body with our members to add
     let newMembers = {
       data: members.map(id => {
         return {
-          type: 'group',
+          type: memberType,
           id
         };
       })
@@ -168,7 +165,6 @@ export default {
    * @param {import('./cert').Pfx} certificate
    * @param {string} method
    * @param {any} body
-   * @param {boolean} fullResponse
    * @returns {Request}
    */
   CreateRequest(url, certificate, method = 'GET', body = {}) {
@@ -183,8 +179,7 @@ export default {
         pfx: certificate.pfx,
         passphrase: certificate.passphrase,
         securityOptions: 'SSL_OP_NO_SSLv3'
-      },
-      resolveWithFullResponse: this.Config.fullResponse
+      }
     };
     if (certificate.ca) {
       options.ca.push(certificate.ca);
@@ -198,5 +193,5 @@ export default {
 
 /** @typedef {{ id: string, created: number }} UWGroup */
 /** @typedef {{ id: string, description: string, timestamp: number }} UWGroupHistory */
-/** @typedef {{ certificate: import('./cert').Pfx, baseUrl: string, fullResponse: boolean }} Config */
+/** @typedef {{ certificate: import('./cert').Pfx, baseUrl: string }} Config */
 /** @typedef {{ method: string, url: string, body: any, json: boolean, time: boolean, ca: string[], agentOptions: { pfx: string, passphrase: string, securityOptions: string }}} Request */

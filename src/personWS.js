@@ -10,20 +10,17 @@ export default {
       ca: null,
       incommon: null
     },
-    baseUrl: '',
-    fullResponse: false
+    baseUrl: ''
   },
 
   /**
    * Initial setup for PersonWS library
    * @param {import('./cert').Pfx} certificate
    * @param {string} baseUrl
-   * @param {boolean} fullResponse
    */
-  Setup(certificate, baseUrl, fullResponse = false) {
+  Setup(certificate, baseUrl) {
     this.Config.certificate = certificate;
     this.Config.baseUrl = baseUrl;
-    this.Config.fullResponse = fullResponse;
   },
 
   /**
@@ -125,7 +122,6 @@ export default {
    * @param {import('./cert').Pfx} certificate
    * @param {string} method
    * @param {any} body
-   * @param {boolean} fullResponse
    * @returns {Request}
    */
   CreateRequest(url, certificate, method = 'GET', body = {}) {
@@ -140,8 +136,7 @@ export default {
         pfx: certificate.pfx,
         passphrase: certificate.passphrase,
         securityOptions: 'SSL_OP_NO_SSLv3'
-      },
-      resolveWithFullResponse: this.Config.fullResponse
+      }
     };
     if (certificate.ca) {
       options.ca.push(certificate.ca);
@@ -155,5 +150,5 @@ export default {
 
 /** @typedef {{ Persons: UWPerson[], TotalCount: string, Size: string, PageStart: string}} PWSSearchResult */
 /** @typedef {{ UWNetID: string, UWRegID: string, DisplayName: string, EduPersonAffiliations: string[] }} UWPerson */
-/** @typedef {{ certificate: import('./cert').Pfx, baseUrl: string, fullResponse: boolean }} Config */
+/** @typedef {{ certificate: import('./cert').Pfx, baseUrl: string }} Config */
 /** @typedef {{ method: string, url: string, body: any, json: boolean, time: boolean, ca: string[], agentOptions: { pfx: string, passphrase: string, securityOptions: string }}} Request */
