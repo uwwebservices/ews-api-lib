@@ -68,17 +68,16 @@ describe('Webservice Tests', function() {
   });
 
   const groupName = 'uw_ais_sm_ews_api-tests';
+  const newTestGroup = `${groupName}_testgroup`;
+
   describe('GroupsWS Tests', function() {
     it('Search for test group', async function() {
       let resp = await groups.Search(groupName, 'one');
-      assert.include(groupName, resp);
+      assert.include(resp, groupName);
     });
     it('Should add group members', async function() {
       let resp = await groups.UpdateMembers(groupName, [testNetids[0]], 'netid');
       assert.isTrue(resp);
-    });
-    it('Should remove group members', async function() {
-      // not implemented yet
     });
     it('Should get info about a group', async function() {
       let resp = await groups.Info([groupName]);
@@ -88,10 +87,22 @@ describe('Webservice Tests', function() {
       let resp = await groups.GetHistory(groupName);
       assert.isAtLeast(resp.length, 1);
     });
-    it('Should delete group', async function() {
-      // not testing delete until create is added
-    });
+
     it('Should create a group', async function() {
+      let resp = await groups.Create(newTestGroup, [{ id: 'aisdev.cac.washington.edu', type: 'dns' }, { id: 'ccan', type: 'uwnetid' }]);
+      assert.equal(newTestGroup, resp.id);
+    });
+    it('Should delete group', async function() {
+      let resp = await groups.Delete([newTestGroup], true);
+      assert.equal(resp[0], newTestGroup);
+    });
+    it('Should remove group members', async function() {
+      // not implemented yet
+    });
+    it('Should get group members', async function() {
+      // not implemented yet
+    });
+    it('Should get group effective members', async function() {
       // not implemented yet
     });
   });
