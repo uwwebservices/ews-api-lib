@@ -159,6 +159,17 @@ export default {
     return deletedGroups;
   },
 
+  /**
+   * Create a new group
+   * @param {string} group
+   * @param {string[]} admins
+   * @param {string[]} readers
+   * @param {string} classification
+   * @param {string} displayName
+   * @param {string} description
+   * @param {boolean} synchronized
+   * @param {boolean} email
+   */
   async Create(group, admins, readers = [], classification = 'u', displayName = '', description = '', synchronized = true, email = false) {
     if (!group || !admins) {
       return false;
