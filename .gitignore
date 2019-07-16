@@ -62,3 +62,4 @@ typings/
 
 #dist/
 config/
+.DS_Store
