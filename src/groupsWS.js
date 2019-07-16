@@ -159,6 +159,42 @@ export default {
     return deletedGroups;
   },
 
+  async Create(group, admins, readers = [], classification = 'u', displayName = '', description = '', synchronized = true, email = false) {
+    if (!group || !admins) {
+      return false;
+    }
+    const body = {
+      data: {
+        id: group,
+        displayName,
+        description,
+        admins,
+        readers,
+        classification
+      }
+    };
+    const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}?synchronized=${synchronized}`, this.Config.certificate, 'PUT', body);
+
+    try {
+      let res = await rp(request);
+      if (email) {
+        await rp(this.CreateRequest(`${this.Config.baseUrl}/group/${group}/affiliate/google?status=active&sender=member`, this.Config.certificate, 'PUT'));
+      }
+      return res.data;
+    } catch (error) {
+      console.log(`Create: Error trying to create ${group}; ${error}`);
+      return false;
+    }
+  },
+
+  async RemoveMembers(group, members) {
+    return false;
+  },
+
+  async GetMembers(group, effective = false) {
+    return false;
+  },
+
   /**
    * Default configuration for an API request
    * @param {string} url
@@ -175,6 +211,7 @@ export default {
       json: true,
       time: true,
       ca: [],
+      timeout: 60000,
       agentOptions: {
         pfx: certificate.pfx,
         passphrase: certificate.passphrase,
