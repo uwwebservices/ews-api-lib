@@ -15,7 +15,8 @@ exports.default = {
     certificate: {
       pfx: null,
       passphrase: null,
-      ca: null
+      ca: null,
+      incommon: null
     },
     baseUrl: ''
   },
@@ -36,18 +37,25 @@ exports.default = {
   },
 
   CreateRequest(url, certificate, method = 'GET', body = {}) {
-    return {
+    let options = {
       method,
       url,
       body,
       json: true,
       time: true,
-      ca: [certificate.ca],
+      ca: [],
       agentOptions: {
         pfx: certificate.pfx,
         passphrase: certificate.passphrase,
         securityOptions: 'SSL_OP_NO_SSLv3'
       }
     };
+    if (certificate.ca) {
+      options.ca.push(certificate.ca);
+    }
+    if (certificate.incommon) {
+      options.ca.push(certificate.incommon);
+    }
+    return options;
   }
 };
