@@ -35,7 +35,7 @@ export default {
 
     let start = new Date();
     let wsGroups = (await rp(request)).data;
-    console.log(`Found ${wsGroups.length} subgroups of ${stemId} in ${(+new Date() - +start).toString()}ms`);
+    //console.log(`Found ${wsGroups.length} subgroups of ${stemId} in ${(+new Date() - +start).toString()}ms`);
 
     return wsGroups.map(group => group.id);
   },
@@ -60,7 +60,7 @@ export default {
     const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}/member`, this.Config.certificate, 'PUT', newMembers);
     const start = new Date();
     let response = await rp(request);
-    console.log(`Added ${members.length} users/groups to ${group} in ${(+new Date() - +start).toString()}ms`);
+    //console.log(`Added ${members.length} users/groups to ${group} in ${(+new Date() - +start).toString()}ms`);
 
     return response.errors[0].status === 200;
   },
@@ -78,7 +78,7 @@ export default {
         const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}`, this.Config.certificate);
         return rp(request)
           .then(resp => {
-            console.log(`Got info for a group (${group}) in ${(+new Date() - +start).toString()}ms`);
+            //console.log(`Got info for a group (${group}) in ${(+new Date() - +start).toString()}ms`);
             const wsGroup = resp.data;
             // the data to extract
             infoGroups.push({
@@ -110,7 +110,7 @@ export default {
       const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}/history?activity=membership&order=a&start=${start}`, this.Config.certificate);
       try {
         let res = await rp(request);
-        console.log(`Got partial history for a group (${group}) in ${(+new Date() - +timerStart).toString()}ms`);
+        //console.log(`Got partial history for a group (${group}) in ${(+new Date() - +timerStart).toString()}ms`);
 
         // Breakout if no data available
         if (!res || !res.data || res.data.length == 0) {
@@ -145,7 +145,7 @@ export default {
         const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}?synchronized=${synchronized}`, this.Config.certificate, 'DELETE');
         return rp(request)
           .then(resp => {
-            console.log(`Deleted a group (${group}) in ${(+new Date() - +start).toString()}ms`);
+            //console.log(`Deleted a group (${group}) in ${(+new Date() - +start).toString()}ms`);
             if (Array.isArray(resp.errors) && resp.errors.length > 0 && resp.errors[0].status === 200) {
               deletedGroups.push(group);
             }
