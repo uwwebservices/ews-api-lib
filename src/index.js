@@ -1,11 +1,5 @@
-import Certificate from './cert';
-import GroupsWebService from './groupsWS';
-import PersonWebService from './personWS';
-import IDCardWebService from './idcardWS';
-import HRPWebService from './hrpWS';
-
-exports.Certificate = Certificate;
-exports.GroupsWebService = GroupsWebService;
-exports.PersonWebService = PersonWebService;
-exports.IDCardWebService = IDCardWebService;
-exports.HRPWebService = HRPWebService;
+export { default as Certificate } from './cert';
+export { default as GroupsWebService } from './groupsWS';
+export { default as PersonWebService } from './personWS';
+export { default as IDCardWebService } from './idcardWS';
+export { default as HRPWebService } from './hrpWS';
