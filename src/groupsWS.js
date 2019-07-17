@@ -44,7 +44,7 @@ export default {
   },
 
   /**
-   * Replace group members with member list
+   * Replace group members with member list (one memberType at at a time)
    * @param {string} group - The group to update membership
    * @param {string[]} members - The new members for the group (replaces old members)
    * @param {string} memberType - The type of member you're adding ('group', 'netid', 'dns') (default: 'group')
@@ -54,9 +54,9 @@ export default {
     return this.ReplaceMembersFormatted(group, members.map(id => ({ type: memberType, id })));
   },
   /**
-   *
-   * @param {string} group
-   * @param {UWGroupMember[]} members
+   * Replace group members with a preformatted member list
+   * @param {string} group - Group to replace members
+   * @param {UWGroupMember[]} formattedMembers - Formatted member list (eg. [{ type: 'netid', id: 'foobar93'}])
    */
   async ReplaceMembersFormatted(group, formattedMembers) {
     const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}/member`, this.Config.certificate, 'PUT', { data: formattedMembers });
