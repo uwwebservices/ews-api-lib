@@ -30,28 +30,43 @@ exports.default = {
     const request = this.CreateRequest(`${this.Config.baseUrl}/search?stem=${stemId}&scope=${depth}${extraQueryParams}`, this.Config.certificate);
 
     let start = new Date();
-    let wsGroups = (await (0, _requestPromise2.default)(request)).data;
-
-
-    return wsGroups.map(group => group.id);
+    try {
+      let wsGroups = (await (0, _requestPromise2.default)(request)).data;
+      return wsGroups.map(group => group.id);
+    } catch (error) {
+      console.log(`GroupSearch: Error trying to search ${stemId}; ${error}`);
+      return [];
+    }
   },
 
-  async UpdateMembers(group, members, memberType = 'group') {
-    let newMembers = {
-      data: members.map(id => {
-        return {
-          type: memberType,
-          id
-        };
-      })
-    };
+  async ReplaceMembers(group, members, memberType = 'group') {
+    return this.ReplaceMembersFormatted(group, members.map(id => ({ type: memberType, id })));
+  },
 
-    const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}/member`, this.Config.certificate, 'PUT', newMembers);
-    const start = new Date();
-    let response = await (0, _requestPromise2.default)(request);
+  async ReplaceMembersFormatted(group, formattedMembers) {
+    const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}/member`, this.Config.certificate, 'PUT', { data: formattedMembers });
+    try {
+      let resp = await (0, _requestPromise2.default)(request);
+      return resp.errors[0].status === 200;
+    } catch (error) {
+      console.log(`ReplaceMembers: Error trying to add members to ${group}; ${error}`);
+      return false;
+    }
+  },
 
+  async AddMembers(group, members) {
+    return await this.AddMember(group, members.join(','));
+  },
 
-    return response.errors[0].status === 200;
+  async AddMember(group, member) {
+    const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}/member/${member}`, this.Config.certificate, 'PUT');
+    try {
+      const resp = await (0, _requestPromise2.default)(request);
+      return resp.errors[0].status === 200;
+    } catch (error) {
+      console.log(`AddMember: Error trying to add ${member} to ${group}; ${error}`);
+      return false;
+    }
   },
 
   async Info(groups) {
@@ -68,6 +83,7 @@ exports.default = {
         });
       }).catch(error => {
         console.log(`Info: Error trying to fetch info for ${group}; ${error}`);
+        return [];
       });
     }));
 
@@ -104,19 +120,75 @@ exports.default = {
 
   async Delete(groups, synchronized = false) {
     const deletedGroups = [];
-    await Promise.all(groups.map(group => {
-      const start = new Date();
+    await Promise.all(groups.map(async group => {
       const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}?synchronized=${synchronized}`, this.Config.certificate, 'DELETE');
-      return (0, _requestPromise2.default)(request).then(resp => {
+      try {
+        const resp = await (0, _requestPromise2.default)(request);
         if (Array.isArray(resp.errors) && resp.errors.length > 0 && resp.errors[0].status === 200) {
           deletedGroups.push(group);
         }
-      }).catch(error => {
+      } catch (error) {
         console.log(`Delete: Error trying to delete ${group}; ${error}`);
-      });
+        return [];
+      }
     }));
 
     return deletedGroups;
+  },
+
+  async Create(group, admins, readers = [], classification = 'u', displayName = '', description = '', synchronized = true, email = false) {
+    if (!group || !admins) {
+      return false;
+    }
+    const body = {
+      data: {
+        id: group,
+        displayName,
+        description,
+        admins,
+        readers,
+        classification
+      }
+    };
+    const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}?synchronized=${synchronized}`, this.Config.certificate, 'PUT', body);
+
+    try {
+      let res = await (0, _requestPromise2.default)(request);
+      if (email) {
+        await (0, _requestPromise2.default)(this.CreateRequest(`${this.Config.baseUrl}/group/${group}/affiliate/google?status=active&sender=member`, this.Config.certificate, 'PUT'));
+      }
+      return res.data;
+    } catch (error) {
+      console.log(`Create: Error trying to create ${group}; ${error}`);
+      return false;
+    }
+  },
+
+  async RemoveMembers(group, members, synchronized = true) {
+    return await this.RemoveMember(group, members.join(','), synchronized);
+  },
+
+  async RemoveMember(group, member, synchronized = true) {
+    const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}/member/${member}?synchronized=${synchronized.toString()}`, this.Config.certificate, 'DELETE');
+    try {
+      const resp = await (0, _requestPromise2.default)(request);
+      return resp.errors[0].status === 200;
+    } catch (error) {
+      console.log(`RemoveMembers: Error trying to remove ${member} from ${group}; ${error}`);
+      return false;
+    }
+  },
+
+  async GetMembers(group, effective = false, force = false) {
+    const endpoint = effective ? 'effective_member' : 'member';
+    const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}/${endpoint}${force ? '?source=registry' : ''}`, this.Config.certificate);
+    try {
+      const res = await (0, _requestPromise2.default)(request);
+      return res.data;
+    } catch (error) {
+      console.log(`Get Members: Error getting members for group ${group}; ${error}`);
+      return [];
+    }
   },
 
   CreateRequest(url, certificate, method = 'GET', body = {}) {
@@ -127,6 +199,7 @@ exports.default = {
       json: true,
       time: true,
       ca: [],
+      timeout: 60000,
       agentOptions: {
         pfx: certificate.pfx,
         passphrase: certificate.passphrase,
