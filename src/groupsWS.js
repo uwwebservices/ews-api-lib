@@ -75,22 +75,10 @@ export default {
    * Add multiple members to a group
    * @param {string} group - The group to add members to
    * @param {string[]} members - The members to be added
-   * @returns {Promise<string[]>} - The members that were successfully added
+   * @returns {Promise<boolean>} - A flag representing if members were successfully added
    */
-  // TODO: Parallelize this
   async AddMembers(group, members) {
-    let success = [];
-    for (let member of members) {
-      try {
-        if (await this.AddMember(group, member)) {
-          success.push(member);
-        }
-      } catch (error) {
-        console.log(`AddMembers: Error trying to add ${member} to ${group}; ${error}`);
-        return [];
-      }
-    }
-    return success;
+    return await this.AddMember(group, members.join(','));
   },
 
   /**
@@ -247,17 +235,10 @@ export default {
    * @param {string} group - The group to remove members from
    * @param {string[]} members - The members to be removed
    * @param {boolean} synchronized - Wait until the group has been fully deleted before returning? (default: true)
-   * @returns {Promise<string[]>} - The members successfully removed from the group
+   * @returns {Promise<boolean>} - Members were successfully removed flag
    */
-  // TODO: Parallelize this
   async RemoveMembers(group, members, synchronized = true) {
-    let removed = [];
-    for (const member of members) {
-      if (this.RemoveMember(group, member, synchronized)) {
-        removed.push(member);
-      }
-    }
-    return removed;
+    return await this.RemoveMember(group, members.join(','), synchronized);
   },
   /**
    * Remove a member from a group

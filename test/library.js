@@ -88,7 +88,7 @@ describe('Webservice Tests', function() {
       let addedNetids = await groups.AddMembers(testGroup, testNetids);
       let addedGroup = await groups.AddMember(testGroup, testEffectiveGroup);
 
-      assert.sameMembers(testNetids, addedNetids);
+      assert.isTrue(addedNetids);
       assert.isTrue(addedGroup);
     });
     it('Should get group members', async function() {
@@ -106,11 +106,11 @@ describe('Webservice Tests', function() {
     it('Should remove group members', async function() {
       const removeOne = [testNetids[0]];
       const removeTwo = [testNetids[1], testEffectiveGroup];
-      let resp = await groups.RemoveMember(testGroup, removeOne);
-      assert.isTrue(resp);
+      const resp1 = await groups.RemoveMember(testGroup, removeOne);
+      assert.isTrue(resp1);
 
-      resp = await groups.RemoveMembers(testGroup, removeTwo);
-      assert.sameMembers(removeTwo, resp);
+      const resp2 = await groups.RemoveMembers(testGroup, removeTwo);
+      assert.isTrue(resp2);
     });
     it('Should get group history', async function() {
       let resp = await groups.GetHistory(testGroup);
