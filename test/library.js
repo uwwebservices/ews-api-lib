@@ -22,8 +22,12 @@ const hrpBaseUrl = 'https://wseval.s.uw.edu/hrp/v2';
 const idcardBaseUrl = 'https://wseval.s.uw.edu/idcard/v1';
 const groupsBaseUrl = 'https://groups.uw.edu/group_sws/v3';
 
-const testNetids = ['ptaladay', 'pprestin'];
+const testGroup = 'uw_ais_sm_ews_ews-api-lib-test-group';
+
+const testNetids = ['ptaladay', 'mattjm'];
+const testEffectiveGroup = 'uw_ais_sm_ews';
 const testRegid = '899D5562A55911DA84D4E43104487AB3';
+const testDns = 'aisdev.cac.washington.edu';
 
 let s3cert = null;
 let fscert = null;
@@ -67,43 +71,54 @@ describe('Webservice Tests', function() {
     pws.Setup(s3cert, pwsBaseUrl);
   });
 
-  const groupName = 'uw_ais_sm_ews_api-tests';
-  const newTestGroup = `${groupName}_testgroup`;
-
   describe('GroupsWS Tests', function() {
-    it('Search for test group', async function() {
-      let resp = await groups.Search(groupName, 'one');
-      assert.include(resp, groupName);
-    });
-    it('Should add group members', async function() {
-      let resp = await groups.UpdateMembers(groupName, [testNetids[0]], 'netid');
-      assert.isTrue(resp);
+    it('Should create a group', async function() {
+      let resp = await groups.Create(testGroup, [{ id: testDns, type: 'dns' }, { id: testEffectiveGroup, type: 'group' }]);
+      assert.equal(testGroup, resp.id);
     });
     it('Should get info about a group', async function() {
-      let resp = await groups.Info([groupName]);
-      assert.equal(groupName, resp[0].id);
+      let resp = await groups.Info([testGroup]);
+      assert.equal(testGroup, resp[0].id);
     });
-    it('Should get group history', async function() {
-      let resp = await groups.GetHistory(groupName);
-      assert.isAtLeast(resp.length, 1);
+    it('Should search for test group', async function() {
+      let resp = await groups.Search(testGroup, 'one');
+      assert.include(resp, testGroup);
     });
+    it('Should add group members', async function() {
+      let addedNetids = await groups.AddMembers(testGroup, testNetids);
+      let addedGroup = await groups.AddMember(testGroup, testEffectiveGroup);
 
-    it('Should create a group', async function() {
-      let resp = await groups.Create(newTestGroup, [{ id: 'aisdev.cac.washington.edu', type: 'dns' }, { id: 'ccan', type: 'uwnetid' }]);
-      assert.equal(newTestGroup, resp.id);
-    });
-    it('Should delete group', async function() {
-      let resp = await groups.Delete([newTestGroup], true);
-      assert.equal(resp[0], newTestGroup);
-    });
-    it('Should remove group members', async function() {
-      // not implemented yet
+      assert.sameMembers(testNetids, addedNetids);
+      assert.isTrue(addedGroup);
     });
     it('Should get group members', async function() {
-      // not implemented yet
+      let members = await groups.GetMembers(testGroup, false, true);
+      assert.lengthOf(members, 3);
     });
     it('Should get group effective members', async function() {
-      // not implemented yet
+      let members = await groups.GetMembers(testGroup, true, true);
+      assert.isAtLeast(members.length, 5);
+    });
+    it('Should replace group members', async function() {
+      let resp = await groups.ReplaceMembers(testGroup, [...testNetids, testEffectiveGroup]);
+      assert.isTrue(resp);
+    });
+    it('Should remove group members', async function() {
+      const removeOne = [testNetids[0]];
+      const removeTwo = [testNetids[1], testEffectiveGroup];
+      let resp = await groups.RemoveMember(testGroup, removeOne);
+      assert.isTrue(resp);
+
+      resp = await groups.RemoveMembers(testGroup, removeTwo);
+      assert.sameMembers(removeTwo, resp);
+    });
+    it('Should get group history', async function() {
+      let resp = await groups.GetHistory(testGroup);
+      assert.isAtLeast(resp.length, 1);
+    });
+    it('Should delete group', async function() {
+      let resp = await groups.Delete([testGroup], true);
+      assert.equal(resp[0], testGroup);
     });
   });
 
@@ -119,12 +134,22 @@ describe('Webservice Tests', function() {
       let resp = await idcard.GetPhoto(testRegid);
       assert.isNotNull(resp);
     });
-    it('Should translate magstripe to regid', async function() {
-      // TO DO: need a test magstrip
-    });
-    it('Should translate rfid to regid', async function() {
-      // TO DO: need a test rfid
-    });
+
+    // Magstripe and Rfid values are sensitive and cannot be stored in repo
+    // Uncomment and fill in real values to test
+    //
+    // it('Should translate magstripe to regid', async function() {
+    //   const testMagstripe = '123456';
+    //   const expectedRegid = '1A2B3C4D';
+    //   let resp = await idcard.GetRegID(testMagstripe);
+    //   assert.equal(resp, expectedRegid);
+    // });
+    // it('Should translate rfid to regid', async function() {
+    //   const testRfid = '123456';
+    //   const expectedRegid = '1A2B3C4D';
+    //   let resp = await idcard.GetRegID('', testRfid);
+    //   assert.equal(resp, expectedRegid);
+    // });
   });
 
   describe('PWS Tests', function() {

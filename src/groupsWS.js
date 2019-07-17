@@ -15,8 +15,8 @@ export default {
 
   /**
    * Initial setup for GroupsWS library
-   * @param {import('./cert').Pfx} certificate
-   * @param {string} baseUrl
+   * @param {import('./cert').Pfx} certificate - The certificate object to use for future GWS calls
+   * @param {string} baseUrl - The baseUrl for future GWS calls
    */
   Setup(certificate, baseUrl) {
     this.Config.certificate = certificate;
@@ -26,7 +26,7 @@ export default {
   /**
    * Searches GroupsWS for groups starting with the provided stemId and depth
    * @param {string} stemId - The stemId to search
-   * @param {string} depth - 'one' or 'all', one level deep or all levels deep
+   * @param {string} depth - 'one' or 'all', one level deep or all levels deep (default: 'one')
    * @param {string} extraQueryParams - Extra query parameters as a string. MUST start with '&'
    * @returns {Promise<string[]>} - An array of groups found matching the stemId
    */
@@ -34,19 +34,24 @@ export default {
     const request = this.CreateRequest(`${this.Config.baseUrl}/search?stem=${stemId}&scope=${depth}${extraQueryParams}`, this.Config.certificate);
 
     let start = new Date();
-    let wsGroups = (await rp(request)).data;
-    //console.log(`Found ${wsGroups.length} subgroups of ${stemId} in ${(+new Date() - +start).toString()}ms`);
-
-    return wsGroups.map(group => group.id);
+    try {
+      let wsGroups = (await rp(request)).data;
+      return wsGroups.map(group => group.id);
+    } catch (error) {
+      console.log(`GroupSearch: Error trying to search ${stemId}; ${error}`);
+      return [];
+    }
   },
 
   /**
-   * Update Members of a group (additive)
+   * Replace group members with member list
    * @param {string} group - The group to update membership
-   * @param {string[]} members - The members to add to the group
+   * @param {string[]} members - The new members for the group (replaces old members)
+   * @param {string} memberType - The type of member you're adding ('group', 'netid', 'dns') (default: 'group')
    * @returns {Promise<boolean>} - An array of groups found with additional information.
    */
-  async UpdateMembers(group, members, memberType = 'group') {
+  // TODO: Break this into two functions so you can pass an array of preformatted members instaad of only one type of member
+  async ReplaceMembers(group, members, memberType = 'group') {
     // build the request body with our members to add
     let newMembers = {
       data: members.map(id => {
@@ -58,17 +63,57 @@ export default {
     };
 
     const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}/member`, this.Config.certificate, 'PUT', newMembers);
-    const start = new Date();
-    let response = await rp(request);
-    //console.log(`Added ${members.length} users/groups to ${group} in ${(+new Date() - +start).toString()}ms`);
+    try {
+      let resp = await rp(request);
+      return resp.errors[0].status === 200;
+    } catch (error) {
+      console.log(`ReplaceMembers: Error trying to add ${members} to ${group} of type ${memberType}; ${error}`);
+      return false;
+    }
+  },
+  /**
+   * Add multiple members to a group
+   * @param {string} group - The group to add members to
+   * @param {string[]} members - The members to be added
+   * @returns {Promise<string[]>} - The members that were successfully added
+   */
+  // TODO: Parallelize this
+  async AddMembers(group, members) {
+    let success = [];
+    for (let member of members) {
+      try {
+        if (await this.AddMember(group, member)) {
+          success.push(member);
+        }
+      } catch (error) {
+        console.log(`AddMembers: Error trying to add ${member} to ${group}; ${error}`);
+        return [];
+      }
+    }
+    return success;
+  },
 
-    return response.errors[0].status === 200;
+  /**
+   * Add one member to a group
+   * @param {string} group - The group to add a member to
+   * @param {string} member - The member to add to the specified group
+   * @returns {Promise<boolean>} - A flag representing if the action was completed successfully
+   */
+  async AddMember(group, member) {
+    const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}/member/${member}`, this.Config.certificate, 'PUT');
+    try {
+      const resp = await rp(request);
+      return resp.errors[0].status === 200;
+    } catch (error) {
+      console.log(`AddMember: Error trying to add ${member} to ${group}; ${error}`);
+      return false;
+    }
   },
 
   /**
    * Lookup groups in GroupsWS for additional information.
-   * @param {string[]} groups - The groups to lookup in GroupsWS.
-   * @returns {Promise<UWGroup[]>} - An array of groups found with additional information.
+   * @param {string[]} groups - The groups to lookup
+   * @returns {Promise<UWGroup[]>} - An array of groups found with additional information
    */
   async Info(groups) {
     const infoGroups = [];
@@ -88,6 +133,7 @@ export default {
           })
           .catch(error => {
             console.log(`Info: Error trying to fetch info for ${group}; ${error}`);
+            return [];
           });
       })
     );
@@ -110,7 +156,6 @@ export default {
       const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}/history?activity=membership&order=a&start=${start}`, this.Config.certificate);
       try {
         let res = await rp(request);
-        //console.log(`Got partial history for a group (${group}) in ${(+new Date() - +timerStart).toString()}ms`);
 
         // Breakout if no data available
         if (!res || !res.data || res.data.length == 0) {
@@ -131,28 +176,26 @@ export default {
   },
 
   /**
-   * Delete groups in GroupsWS.
-   * @param {string[]} groups - The groups to delete in GroupsWS.
-   * @param {boolean} synchronized - The synchronized flag
-   * @returns {Promise<string[]>} - An array of groups deleted in GroupsWS.
+   * Delete groups in GroupsWS
+   * @param {string[]} groups - The groups to delete in GroupsWS
+   * @param {boolean} synchronized - Wait until the group has been fully deleted before returning? (default: false)
+   * @returns {Promise<string[]>} - An array of groups deleted in GroupsWS
    */
   async Delete(groups, synchronized = false) {
     /** @type {string[]} */
     const deletedGroups = [];
     await Promise.all(
-      groups.map(group => {
-        const start = new Date();
+      groups.map(async group => {
         const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}?synchronized=${synchronized}`, this.Config.certificate, 'DELETE');
-        return rp(request)
-          .then(resp => {
-            //console.log(`Deleted a group (${group}) in ${(+new Date() - +start).toString()}ms`);
-            if (Array.isArray(resp.errors) && resp.errors.length > 0 && resp.errors[0].status === 200) {
-              deletedGroups.push(group);
-            }
-          })
-          .catch(error => {
-            console.log(`Delete: Error trying to delete ${group}; ${error}`);
-          });
+        try {
+          const resp = await rp(request);
+          if (Array.isArray(resp.errors) && resp.errors.length > 0 && resp.errors[0].status === 200) {
+            deletedGroups.push(group);
+          }
+        } catch (error) {
+          console.log(`Delete: Error trying to delete ${group}; ${error}`);
+          return [];
+        }
       })
     );
 
@@ -161,14 +204,15 @@ export default {
 
   /**
    * Create a new group
-   * @param {string} group
-   * @param {string[]} admins
-   * @param {string[]} readers
-   * @param {string} classification
-   * @param {string} displayName
-   * @param {string} description
-   * @param {boolean} synchronized
-   * @param {boolean} email
+   * @param {string} group - The group id to create
+   * @param {string[]} admins - A list of admins (netid, dns, group) that can administer this group
+   * @param {string[]} readers - A list of viewers (netid, dns, group) of this group (default: [])
+   * @param {string} classification - Should this group be public or private ('u' - public, 'c' - private) (default: 'u')
+   * @param {string} displayName - The display name for the new group (default: '')
+   * @param {string} description - A description of the new group (default: '')
+   * @param {boolean} synchronized - Wait until the group has been fully deleted before returning? (default: true)
+   * @param {boolean} email - Enable email for this group? (default: false)
+   * @returns {Promise<boolean>} - Group was sucessfully created flag
    */
   async Create(group, admins, readers = [], classification = 'u', displayName = '', description = '', synchronized = true, email = false) {
     if (!group || !admins) {
@@ -198,21 +242,67 @@ export default {
     }
   },
 
-  async RemoveMembers(group, members) {
-    return false;
+  /**
+   * Remove multiple members from a group
+   * @param {string} group - The group to remove members from
+   * @param {string[]} members - The members to be removed
+   * @param {boolean} synchronized - Wait until the group has been fully deleted before returning? (default: true)
+   * @returns {Promise<string[]>} - The members successfully removed from the group
+   */
+  // TODO: Parallelize this
+  async RemoveMembers(group, members, synchronized = true) {
+    let removed = [];
+    for (const member of members) {
+      if (this.RemoveMember(group, member, synchronized)) {
+        removed.push(member);
+      }
+    }
+    return removed;
+  },
+  /**
+   * Remove a member from a group
+   * @param {string} group - The group to remove a member from
+   * @param {string} member - The member to be removed
+   * @param {boolean} synchronized - Wait until the group has been fully deleted before returning? (default: true)
+   * @returns {Promise<boolean>} - Member was successfully removed flag
+   */
+  async RemoveMember(group, member, synchronized = true) {
+    const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}/member/${member}?synchronized=${synchronized.toString()}`, this.Config.certificate, 'DELETE');
+    try {
+      const resp = await rp(request);
+      return resp.errors[0].status === 200;
+    } catch (error) {
+      console.log(`RemoveMembers: Error trying to remove ${member} from ${group}; ${error}`);
+      return false;
+    }
   },
 
-  async GetMembers(group, effective = false) {
-    return false;
+  /**
+   * Get group direct or effective members
+   * @param {string} group - The group to get membership from
+   * @param {boolean} effective - Include members of groups?
+   * @param {boolean} force - Force GWS to not use it's cached value (default: false)
+   * @returns {Promise<UWGroupMember[]>} - A list of group members (default: false)
+   */
+  async GetMembers(group, effective = false, force = false) {
+    const endpoint = effective ? 'effective_member' : 'member';
+    const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}/${endpoint}${force ? '?source=registry' : ''}`, this.Config.certificate);
+    try {
+      const res = await rp(request);
+      return res.data;
+    } catch (error) {
+      console.log(`Get Members: Error getting members for group ${group}; ${error}`);
+      return [];
+    }
   },
 
   /**
    * Default configuration for an API request
-   * @param {string} url
-   * @param {import('./cert').Pfx} certificate
-   * @param {string} method
-   * @param {any} body
-   * @returns {Request}
+   * @param {string} url - The full URL to make ar equest to
+   * @param {import('./cert').Pfx} certificate - Certificate informationg for the request
+   * @param {string} method - HTTP Method to use (default: 'GET')
+   * @param {any} body - A body object to send with the request (default: {})
+   * @returns {Request} - A request/request-promise configuration object
    */
   CreateRequest(url, certificate, method = 'GET', body = {}) {
     let options = {
@@ -240,6 +330,7 @@ export default {
 };
 
 /** @typedef {{ id: string, created: number }} UWGroup */
+/** @typedef {{ type: string, id: string }} UWGroupMember */
 /** @typedef {{ id: string, description: string, timestamp: number }} UWGroupHistory */
 /** @typedef {{ certificate: import('./cert').Pfx, baseUrl: string }} Config */
 /** @typedef {{ method: string, url: string, body: any, json: boolean, time: boolean, ca: string[], agentOptions: { pfx: string, passphrase: string, securityOptions: string }}} Request */
