@@ -21,10 +21,12 @@ or
 ## Get a Certificate Object
 
 ### S3 Bucket Storage
+
 `const certificate = await Certificate.GetPFXFromS3('s3-bucket-name','cert-file.pfx', 'cert-key-file.key', 'uw-ca-file.pem');`
 
 ### Local FS Storage
- `const certificate = Certificate.GetPFXFromFS('path to pfx', 'path to passphrase', 'path to uwca cert', 'path to incommon cert');`
+
+`const certificate = Certificate.GetPFXFromFS('path to pfx', 'path to passphrase', 'path to uwca cert', 'path to incommon cert');`
 
 ### Use Certificate Object to setup WS
 
@@ -38,7 +40,13 @@ or
 ### GWS
 
 `GroupsWebService.Search('groupStem', 'depth', 'extraQueryParams');`  
-`GroupsWebService.UpdateMembers('groupName', ['members']);`  
+`GroupsWebService.ReplaceMembers('groupName', ['members']);`  
+`GroupsWebService.AddMembers('groupName', ['members']);`  
+`GroupsWebService.AddMember('groupName', 'member');`  
+`GroupsWebService.Create('groupName', ['admins'], ['readers'], classification, displayName, description, syncFlag, emailFlag');`  
+`GroupsWebService.RemoveMembers('groupName', ['members'], syncFlag);`  
+`GroupsWebService.RemoveMember('groupName, 'member', syncFlag);`  
+`GroupsWebService.GetMembers('groupName', effectiveFlag, forceFlag);`  
 `GroupsWebService.Info(['groups']);`  
 `GroupsWebService.GetHistory('groupName');`  
 `GroupsWebService.Delete('groupName', 'syncFlag')`
@@ -56,7 +64,7 @@ or
 
 `PersonWebService.Get('identifier');`  
 `PersonWebService.GetMany(['identifiers']);`  
-`PersonWebService.Search('query');`  
+`PersonWebService.Search('query');`
 
 ## Updating ews-api-lib
 
