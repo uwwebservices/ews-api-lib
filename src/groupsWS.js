@@ -50,24 +50,21 @@ export default {
    * @param {string} memberType - The type of member you're adding ('group', 'netid', 'dns') (default: 'group')
    * @returns {Promise<boolean>} - An array of groups found with additional information.
    */
-  // TODO: Break this into two functions so you can pass an array of preformatted members instaad of only one type of member
   async ReplaceMembers(group, members, memberType = 'group') {
-    // build the request body with our members to add
-    let newMembers = {
-      data: members.map(id => {
-        return {
-          type: memberType,
-          id
-        };
-      })
-    };
-
-    const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}/member`, this.Config.certificate, 'PUT', newMembers);
+    return this.ReplaceMembersFormatted(group, members.map(id => ({ type: memberType, id })));
+  },
+  /**
+   *
+   * @param {string} group
+   * @param {UWGroupMember[]} members
+   */
+  async ReplaceMembersFormatted(group, formattedMembers) {
+    const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}/member`, this.Config.certificate, 'PUT', { data: formattedMembers });
     try {
       let resp = await rp(request);
       return resp.errors[0].status === 200;
     } catch (error) {
-      console.log(`ReplaceMembers: Error trying to add ${members} to ${group} of type ${memberType}; ${error}`);
+      console.log(`ReplaceMembers: Error trying to add members to ${group}; ${error}`);
       return false;
     }
   },
