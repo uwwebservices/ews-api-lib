@@ -1,17 +1,8 @@
-"use strict";
+import rp from 'request-promise';
+import { WebServiceConfig, CreateRequest } from './common';
+import { Pfx } from './cert';
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _requestPromise = _interopRequireDefault(require("request-promise"));
-
-var _common = require("./common");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var _default = {
+export default {
   Config: {
     certificate: {
       pfx: null,
@@ -20,14 +11,14 @@ var _default = {
       incommon: null
     },
     baseUrl: ''
-  },
+  } as WebServiceConfig,
 
   /**
    * Initial setup for IdCardWS library
    * @param certificate
    * @param baseUrl
    */
-  Setup(certificate, baseUrl) {
+  Setup(certificate: Pfx, baseUrl: string) {
     this.Config.certificate = certificate;
     this.Config.baseUrl = baseUrl;
   },
@@ -38,11 +29,11 @@ var _default = {
    * @param rfid The rfid of the card to lookup
    * @returns The UWRegID of the person or an empty string
    */
-  async GetRegID(magstrip = '', rfid = '') {
-    const request = (0, _common.CreateRequest)(`${this.Config.baseUrl}/card.json?mag_strip_code=${magstrip}&prox_rfid=${rfid}`, this.Config.certificate);
+  async GetRegID(magstrip: string = '', rfid: string = '') {
+    const request = CreateRequest(`${this.Config.baseUrl}/card.json?mag_strip_code=${magstrip}&prox_rfid=${rfid}`, this.Config.certificate);
 
     try {
-      return (await (0, _requestPromise.default)(request)).Cards[0].RegID;
+      return (await rp(request)).Cards[0].RegID as string;
     } catch (ex) {
       console.log('GetRegID Error', ex);
       return '';
@@ -55,16 +46,14 @@ var _default = {
    * @param size The size of the photo to fetch (small, medium, large)
    * @returns The photo or null
    */
-  async GetPhoto(regid, size = 'medium') {
-    const request = (0, _common.CreateRequest)(`${this.Config.baseUrl}/photo/${regid}-${size}.jpg`, this.Config.certificate);
+  async GetPhoto(regid: string, size: string = 'medium') {
+    const request = CreateRequest(`${this.Config.baseUrl}/photo/${regid}-${size}.jpg`, this.Config.certificate);
 
     try {
-      return Buffer.from((await (0, _requestPromise.default)(request)));
+      return Buffer.from(await rp(request));
     } catch (ex) {
       console.log('GetPhoto Error', ex);
       return null;
     }
   }
-
 };
-exports.default = _default;

@@ -1,25 +1,17 @@
 {
-  "comments": false,
   "presets": [
     [
-      "env",
+      "@babel/env",
       {
         "targets": {
-          "node": "8.10"
+          "node": "current"
         }
       }
-    ]
+    ],
+    "@babel/typescript"
   ],
   "plugins": [
-    [
-      "syntax-object-rest-spread",
-      "module-resolver",
-      {
-        "alias": {
-          "src": "./src",
-          "config": "./config"
-        }
-      }
-    ]
+    "@babel/proposal-class-properties",
+    "@babel/proposal-object-rest-spread"
   ]
 }

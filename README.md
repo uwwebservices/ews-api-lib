@@ -72,6 +72,7 @@ or
   - Make code changes
   - Rev package.json version
   - `npm run build`
+  - `npm run build-types`
   - commit and push
 - Github:
   - Create new release
