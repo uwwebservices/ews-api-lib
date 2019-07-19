@@ -1,5 +1,15 @@
 /// <reference types="node" />
 import { BaseWebService } from './common';
+export interface UWCard {
+    Cards: {
+        RegID: string;
+    }[];
+}
+export declare enum PhotoSizes {
+    Small = "small",
+    Medium = "medium",
+    Large = "large"
+}
 declare class IDCardWebService extends BaseWebService {
     /**
      * Get the UWRegID of a person via the magstrip/rfid of their husky card
@@ -14,7 +24,7 @@ declare class IDCardWebService extends BaseWebService {
      * @param size The size of the photo to fetch (small, medium, large)
      * @returns The photo or null
      */
-    GetPhoto(regid: string, size?: string): Promise<Buffer>;
+    GetPhoto(regid: string, size?: PhotoSizes): Promise<Buffer>;
 }
 declare const _default: IDCardWebService;
 export default _default;

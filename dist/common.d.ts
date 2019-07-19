@@ -9,6 +9,7 @@ interface Request {
     body: any;
     json: boolean;
     time: boolean;
+    timeout: number;
     ca: string[];
     agentOptions: {
         pfx: string;
@@ -32,11 +33,18 @@ export declare class BaseWebService {
     /**
      * Default configuration for an API request
      * @param url The full URL to make ar equest to
-     * @param certificate Certificate informationg for the request
      * @param method HTTP Method to use (default: 'GET')
      * @param body A body object to send with the request (default: {})
+     * @returns A request/request-promise configuration object (default: 5000)
+     */
+    protected MakeRequest<T>(url: string, method?: string, body?: any, timeout?: number): Promise<T>;
+    /**
+     * Default configuration for an API request
+     * @param url The full URL to make ar equest to
+     * @param method HTTP Method to use
+     * @param body A body object to send with the request
      * @returns A request/request-promise configuration object
      */
-    protected CreateRequest(url: string, certificate: Pfx, method?: string, body?: any, timeout?: number): Request;
+    protected CreateRequest(url: string, method: string, body: any, timeout: number): Request;
 }
 export {};

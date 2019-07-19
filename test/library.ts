@@ -4,6 +4,7 @@ import pws from '../src/personWS';
 import hrp from '../src/hrpWS';
 import idcard from '../src/idcardWS';
 import groups from '../src/groupsWS';
+import whocan from '../src/whocanWS';
 import path from 'path';
 
 const s3Bucket = 'aisdev-certs';
@@ -21,6 +22,7 @@ const pwsBaseUrl = 'https://wseval.s.uw.edu/identity/v2';
 const hrpBaseUrl = 'https://wseval.s.uw.edu/hrp/v2';
 const idcardBaseUrl = 'https://wseval.s.uw.edu/idcard/v1';
 const groupsBaseUrl = 'https://groups.uw.edu/group_sws/v3';
+const whocanwsBaseUrl = 'https://wseval.s.uw.edu/whocan/v1';
 
 const testGroup = 'uw_ais_sm_ews_ews-api-lib-test-group';
 
@@ -29,7 +31,8 @@ const testEffectiveGroup = 'uw_ais_sm_ews';
 const testRegid = '899D5562A55911DA84D4E43104487AB3';
 const testDns = 'aisdev.cac.washington.edu';
 
-let fscert = null;
+const testApplication = 'edw';
+const testRole = 'analyst';
 
 describe('Certificate Tests', function() {
   it('Should load certificate from file system and call WS', async function() {
@@ -57,6 +60,7 @@ describe('Webservice Tests', function() {
     hrp.Setup(s3cert, hrpBaseUrl);
     idcard.Setup(s3cert, idcardBaseUrl);
     pws.Setup(s3cert, pwsBaseUrl);
+    whocan.Setup(s3cert, whocanwsBaseUrl);
   });
 
   describe('GroupsWS Tests', function() {
@@ -158,5 +162,30 @@ describe('Webservice Tests', function() {
     //   const resp = await idcard.GetRegID('', testRfid);
     //   assert.equal(resp, expectedRegid);
     // });
+  });
+
+  describe('WhoCanWS Tests', function() {
+    it('Should get a list of applications', async function() {
+      const resp = await whocan.Applications();
+      assert.isAtLeast(resp.Applications.length, 1);
+    });
+    it('Should get a list of application roles', async function() {
+      const resp = await whocan.Roles(testApplication);
+      assert.equal(resp.Application, testApplication);
+      assert.isAtLeast(resp.Roles.length, 1);
+    });
+    it('Should get authorizations for a user', async function() {
+      const resp = await whocan.Get(testNetids[0], testApplication, testRole);
+      assert.equal(resp.Application, testApplication);
+      assert.equal(resp.Role, testRole);
+      assert.equal(resp.UWNetID, testNetids[0]);
+      assert.isArray(resp.Authorizers);
+      assert.isArray(resp.Relationships);
+    });
+    it('Should not get authorizations for an invalid user', async function() {
+      const invalid = 'totesNotARealUWNetID';
+      const resp = await whocan.Get(invalid, testApplication, testRole);
+      assert.isNull(resp);
+    });
   });
 });

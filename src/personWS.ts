@@ -1,4 +1,3 @@
-import rp from 'request-promise';
 import { BaseWebService } from './common';
 
 export interface PWSSearchResult {
@@ -20,7 +19,7 @@ export interface UWPerson {
 
 class PersonWebService extends BaseWebService {
   /**
-   * Get information for a person via PersonWS.
+   * Get information for a person.
    * @param identifier The identifer (UWNetID or UWRegID) of the person to lookup
    * @returns Data representing a person or null
    */
@@ -28,9 +27,9 @@ class PersonWebService extends BaseWebService {
     if (full) {
       identifier = identifier + '/full';
     }
-    const request = this.CreateRequest(`${this.Config.baseUrl}/person/${identifier}.json`, this.Config.certificate);
+
     try {
-      return await rp(request);
+      return await this.MakeRequest<UWPerson>(`${this.Config.baseUrl}/person/${identifier}.json`);
     } catch (ex) {
       console.log('Get Error', ex);
       return null;
@@ -38,7 +37,7 @@ class PersonWebService extends BaseWebService {
   }
 
   /**
-   * Get information for people via PersonWS.
+   * Get information for people.
    * @param identifiers The identifers (UWNetID or UWRegID) of the people to lookup
    * @param batchSize The size of the batch
    * @param key The key to use (uwnetid or uwregid)
@@ -47,14 +46,13 @@ class PersonWebService extends BaseWebService {
   public async GetMany(identifiers: string[], batchSize: number = 15, key: string = 'uwnetid') {
     let start = 0;
     let end = start + batchSize > identifiers.length ? identifiers.length : start + batchSize;
-    const filtered: UWPerson[] = [];
+    const filtered: Array<UWPerson | null> = [];
 
     while (end <= identifiers.length) {
       let res = {
-        Persons: [] as UWPerson[]
+        Persons: [] as Array<UWPerson | null>
       };
       const ids = identifiers.slice(start, end);
-      const request = this.CreateRequest(`${this.Config.baseUrl}/person.json?${key}=${ids.join(',')}&verbose=true`, this.Config.certificate);
 
       // Breakout if no members
       if (ids.length == 0) {
@@ -62,11 +60,11 @@ class PersonWebService extends BaseWebService {
       }
 
       try {
-        res = await rp(request);
+        res = await this.MakeRequest<PWSSearchResult>(`${this.Config.baseUrl}/person.json?${key}=${ids.join(',')}&verbose=true`);
       } catch (ex) {
         console.log('GetMany Error', ex);
         for (let _ of ids) {
-          res.Persons.push({} as UWPerson);
+          res.Persons.push(null);
         }
       }
 
@@ -82,28 +80,19 @@ class PersonWebService extends BaseWebService {
   }
 
   /**
-   * PWS Search by query
+   * PWS Search by query.
    * @param query The identifer (UWNetID or UWRegID) of the person to lookup
    * @param pageSize How large of a page (max: 250)
    * @param pageStart What page to start on
    * @returns Data representing a person or empty list
    */
   public async Search(query: string, pageSize: string = '10', pageStart: string = '1') {
-    const request = this.CreateRequest(`${this.Config.baseUrl}/person.json?${query}&page_size=${pageSize}&page_start=${pageStart}`, this.Config.certificate);
-    let res = {
-      Persons: [],
-      TotalCount: '',
-      Size: '',
-      PageStart: ''
-    } as PWSSearchResult;
-
     try {
-      res = await rp(request);
+      return await this.MakeRequest<PWSSearchResult>(`${this.Config.baseUrl}/person.json?${query}&page_size=${pageSize}&page_start=${pageStart}`);
     } catch (ex) {
       console.log('Search Error', ex);
+      return { Persons: [], TotalCount: '', Size: '', PageStart: '' };
     }
-
-    return res;
   }
 }
 

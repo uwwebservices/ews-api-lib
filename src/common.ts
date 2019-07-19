@@ -1,4 +1,5 @@
 import { Pfx } from './cert';
+import rp from 'request-promise';
 
 interface WebServiceConfig {
   certificate: Pfx;
@@ -11,6 +12,7 @@ interface Request {
   body: any;
   json: boolean;
   time: boolean;
+  timeout: number;
   ca: string[];
   agentOptions: { pfx: string; passphrase: string; securityOptions: string };
 }
@@ -58,13 +60,24 @@ export class BaseWebService {
   /**
    * Default configuration for an API request
    * @param url The full URL to make ar equest to
-   * @param certificate Certificate informationg for the request
    * @param method HTTP Method to use (default: 'GET')
    * @param body A body object to send with the request (default: {})
+   * @returns A request/request-promise configuration object (default: 5000)
+   */
+  protected async MakeRequest<T>(url: string, method: string = 'GET', body: any = {}, timeout: number = 5000): Promise<T> {
+    const request = this.CreateRequest(url, method, body, timeout);
+    return rp(request);
+  }
+
+  /**
+   * Default configuration for an API request
+   * @param url The full URL to make ar equest to
+   * @param method HTTP Method to use
+   * @param body A body object to send with the request
    * @returns A request/request-promise configuration object
    */
-  protected CreateRequest(url: string, certificate: Pfx, method: string = 'GET', body: any = {}, timeout: number = 5000) {
-    let options = {
+  protected CreateRequest(url: string, method: string, body: any, timeout: number) {
+    const options: Request = {
       method,
       url,
       body,
@@ -73,17 +86,20 @@ export class BaseWebService {
       ca: [],
       timeout,
       agentOptions: {
-        pfx: certificate.pfx,
-        passphrase: certificate.passphrase,
+        pfx: this.Config.certificate.pfx,
+        passphrase: this.Config.certificate.passphrase !== null ? this.Config.certificate.passphrase : '',
         securityOptions: 'SSL_OP_NO_SSLv3'
       }
-    } as Request;
-    if (certificate.ca) {
-      options.ca.push(certificate.ca);
+    };
+
+    if (this.Config.certificate.ca) {
+      options.ca.push(this.Config.certificate.ca);
     }
-    if (certificate.incommon) {
-      options.ca.push(certificate.incommon);
+
+    if (this.Config.certificate.incommon) {
+      options.ca.push(this.Config.certificate.incommon);
     }
+
     return options;
   }
 }

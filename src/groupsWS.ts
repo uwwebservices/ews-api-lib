@@ -1,6 +1,14 @@
 import rp from 'request-promise';
 import { BaseWebService } from './common';
 
+interface GWSResponse {
+  errors: { status: number }[];
+}
+
+interface GWSDataResponse<T> extends GWSResponse {
+  data: T;
+}
+
 export interface UWGroup {
   id: string;
   created: number;
@@ -28,10 +36,8 @@ class GroupsWebService extends BaseWebService {
    * @returns An array of groups found matching the stemId
    */
   public async Search(stemId: string, depth: string = 'one', extraQueryParams: string = '') {
-    const request = this.CreateRequest(`${this.Config.baseUrl}/search?stem=${stemId}&scope=${depth}${extraQueryParams}`, this.Config.certificate, 'GET', {}, GWSTimeout);
-
     try {
-      let wsGroups: UWGroup[] = (await rp(request)).data;
+      let wsGroups = (await this.MakeRequest<{ data: UWGroup[] }>(`${this.Config.baseUrl}/search?stem=${stemId}&scope=${depth}${extraQueryParams}`, 'GET', {}, GWSTimeout)).data;
       return wsGroups.map(group => group.id);
     } catch (error) {
       console.log(`GroupSearch: Error trying to search ${stemId}; ${error}`);
@@ -56,9 +62,8 @@ class GroupsWebService extends BaseWebService {
    * @param formattedMembers Formatted member list (eg. [{ type: 'netid', id: 'foobar93'}])
    */
   public async ReplaceMembersFormatted(group: string, formattedMembers: UWGroupMember[]) {
-    const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}/member`, this.Config.certificate, 'PUT', { data: formattedMembers }, GWSTimeout);
     try {
-      let resp = await rp(request);
+      let resp = await this.MakeRequest<GWSResponse>(`${this.Config.baseUrl}/group/${group}/member`, 'PUT', { data: formattedMembers }, GWSTimeout);
       return resp.errors[0].status === 200;
     } catch (error) {
       console.log(`ReplaceMembers: Error trying to add members to ${group}; ${error}`);
@@ -83,9 +88,8 @@ class GroupsWebService extends BaseWebService {
    * @returns A flag representing if the action was completed successfully
    */
   public async AddMember(group: string, member: string) {
-    const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}/member/${member}`, this.Config.certificate, 'PUT', {}, GWSTimeout);
     try {
-      const resp = await rp(request);
+      const resp = await this.MakeRequest<GWSResponse>(`${this.Config.baseUrl}/group/${group}/member/${member}`, 'PUT', {}, GWSTimeout);
       return resp.errors[0].status === 200;
     } catch (error) {
       console.log(`AddMember: Error trying to add ${member} to ${group}; ${error}`);
@@ -102,8 +106,7 @@ class GroupsWebService extends BaseWebService {
     const infoGroups: UWGroup[] = [];
     await Promise.all(
       groups.map(group => {
-        const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}`, this.Config.certificate, 'GET', {}, GWSTimeout);
-        return rp(request)
+        return this.MakeRequest<GWSDataResponse<UWGroup>>(`${this.Config.baseUrl}/group/${group}`, 'GET', {}, GWSTimeout)
           .then(resp => {
             //console.log(`Got info for a group (${group}) in ${(+new Date() - +start).toString()}ms`);
             const wsGroup = resp.data;
@@ -134,9 +137,8 @@ class GroupsWebService extends BaseWebService {
     let fetchHistory = true;
 
     while (fetchHistory) {
-      const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}/history?activity=membership&order=a&start=${start}`, this.Config.certificate, 'GET', {}, GWSTimeout);
       try {
-        let res = await rp(request);
+        let res = await this.MakeRequest<GWSDataResponse<UWGroupHistory[]>>(`${this.Config.baseUrl}/group/${group}/history?activity=membership&order=a&start=${start}`, 'GET', {}, GWSTimeout);
 
         // Breakout if no data available
         if (!res || !res.data || res.data.length == 0) {
@@ -166,9 +168,8 @@ class GroupsWebService extends BaseWebService {
     const deletedGroups: string[] = [];
     await Promise.all(
       groups.map(async group => {
-        const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}?synchronized=${synchronized}`, this.Config.certificate, 'DELETE', {}, GWSTimeout);
         try {
-          const resp = await rp(request);
+          const resp = await this.MakeRequest<GWSResponse>(`${this.Config.baseUrl}/group/${group}?synchronized=${synchronized}`, 'DELETE', {}, GWSTimeout);
           if (Array.isArray(resp.errors) && resp.errors.length > 0 && resp.errors[0].status === 200) {
             deletedGroups.push(group);
           }
@@ -217,12 +218,11 @@ class GroupsWebService extends BaseWebService {
         classification
       }
     };
-    const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}?synchronized=${synchronized}`, this.Config.certificate, 'PUT', body, GWSTimeout);
 
     try {
-      let res = await rp(request);
+      let res = await this.MakeRequest<GWSDataResponse<UWGroup>>(`${this.Config.baseUrl}/group/${group}?synchronized=${synchronized}`, 'PUT', body, GWSTimeout);
       if (email) {
-        await rp(this.CreateRequest(`${this.Config.baseUrl}/group/${group}/affiliate/google?status=active&sender=member`, this.Config.certificate, 'PUT', GWSTimeout));
+        await this.MakeRequest(`${this.Config.baseUrl}/group/${group}/affiliate/google?status=active&sender=member`, 'PUT', GWSTimeout);
       }
       return res.data;
     } catch (error) {
@@ -250,9 +250,8 @@ class GroupsWebService extends BaseWebService {
    * @returns Member was successfully removed flag
    */
   public async RemoveMember(group: string, member: string, synchronized: boolean = true) {
-    const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}/member/${member}?synchronized=${synchronized.toString()}`, this.Config.certificate, 'DELETE', {}, GWSTimeout);
     try {
-      const resp = await rp(request);
+      const resp = await this.MakeRequest<GWSResponse>(`${this.Config.baseUrl}/group/${group}/member/${member}?synchronized=${synchronized.toString()}`, 'DELETE', {}, GWSTimeout);
       return resp.errors[0].status === 200;
     } catch (error) {
       console.log(`RemoveMembers: Error trying to remove ${member} from ${group}; ${error}`);
@@ -269,10 +268,9 @@ class GroupsWebService extends BaseWebService {
    */
   public async GetMembers(group: string, effective: boolean = false, force: boolean = false) {
     const endpoint = effective ? 'effective_member' : 'member';
-    const request = this.CreateRequest(`${this.Config.baseUrl}/group/${group}/${endpoint}${force ? '?source=registry' : ''}`, this.Config.certificate, 'GET', {}, GWSTimeout);
     try {
-      const res = await rp(request);
-      return res.data as UWGroupMember[];
+      const res = await this.MakeRequest<GWSDataResponse<UWGroupMember[]>>(`${this.Config.baseUrl}/group/${group}/${endpoint}${force ? '?source=registry' : ''}`, 'GET', {}, GWSTimeout);
+      return res.data;
     } catch (error) {
       console.log(`Get Members: Error getting members for group ${group}; ${error}`);
       return [];

@@ -1,5 +1,16 @@
-import rp from 'request-promise';
 import { BaseWebService } from './common';
+
+export interface UWCard {
+  Cards: {
+    RegID: string;
+  }[];
+}
+
+export enum PhotoSizes {
+  Small = 'small',
+  Medium = 'medium',
+  Large = 'large'
+}
 
 class IDCardWebService extends BaseWebService {
   /**
@@ -9,10 +20,8 @@ class IDCardWebService extends BaseWebService {
    * @returns The UWRegID of the person or an empty string
    */
   public async GetRegID(magstrip: string = '', rfid: string = '') {
-    const request = this.CreateRequest(`${this.Config.baseUrl}/card.json?mag_strip_code=${magstrip}&prox_rfid=${rfid}`, this.Config.certificate);
-
     try {
-      return (await rp(request)).Cards[0].RegID as string;
+      return (await this.MakeRequest<UWCard>(`${this.Config.baseUrl}/card.json?mag_strip_code=${magstrip}&prox_rfid=${rfid}`)).Cards[0].RegID as string;
     } catch (ex) {
       console.log('GetRegID Error', ex);
       return '';
@@ -25,11 +34,9 @@ class IDCardWebService extends BaseWebService {
    * @param size The size of the photo to fetch (small, medium, large)
    * @returns The photo or null
    */
-  public async GetPhoto(regid: string, size: string = 'medium') {
-    const request = this.CreateRequest(`${this.Config.baseUrl}/photo/${regid}-${size}.jpg`, this.Config.certificate);
-
+  public async GetPhoto(regid: string, size: PhotoSizes = PhotoSizes.Medium) {
     try {
-      return Buffer.from(await rp(request));
+      return Buffer.from(await this.MakeRequest(`${this.Config.baseUrl}/photo/${regid}-${size}.jpg`));
     } catch (ex) {
       console.log('GetPhoto Error', ex);
       return null;

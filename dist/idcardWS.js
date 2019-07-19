@@ -3,13 +3,18 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = void 0;
-
-var _requestPromise = _interopRequireDefault(require("request-promise"));
+exports.default = exports.PhotoSizes = void 0;
 
 var _common = require("./common");
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+let PhotoSizes;
+exports.PhotoSizes = PhotoSizes;
+
+(function (PhotoSizes) {
+  PhotoSizes["Small"] = "small";
+  PhotoSizes["Medium"] = "medium";
+  PhotoSizes["Large"] = "large";
+})(PhotoSizes || (exports.PhotoSizes = PhotoSizes = {}));
 
 class IDCardWebService extends _common.BaseWebService {
   /**
@@ -19,10 +24,8 @@ class IDCardWebService extends _common.BaseWebService {
    * @returns The UWRegID of the person or an empty string
    */
   async GetRegID(magstrip = '', rfid = '') {
-    const request = this.CreateRequest(`${this.Config.baseUrl}/card.json?mag_strip_code=${magstrip}&prox_rfid=${rfid}`, this.Config.certificate);
-
     try {
-      return (await (0, _requestPromise.default)(request)).Cards[0].RegID;
+      return (await this.MakeRequest(`${this.Config.baseUrl}/card.json?mag_strip_code=${magstrip}&prox_rfid=${rfid}`)).Cards[0].RegID;
     } catch (ex) {
       console.log('GetRegID Error', ex);
       return '';
@@ -36,11 +39,9 @@ class IDCardWebService extends _common.BaseWebService {
    */
 
 
-  async GetPhoto(regid, size = 'medium') {
-    const request = this.CreateRequest(`${this.Config.baseUrl}/photo/${regid}-${size}.jpg`, this.Config.certificate);
-
+  async GetPhoto(regid, size = PhotoSizes.Medium) {
     try {
-      return Buffer.from((await (0, _requestPromise.default)(request)));
+      return Buffer.from((await this.MakeRequest(`${this.Config.baseUrl}/photo/${regid}-${size}.jpg`)));
     } catch (ex) {
       console.log('GetPhoto Error', ex);
       return null;

@@ -4,7 +4,8 @@
   "description": "A library for interacting with UW APIs",
   "main": "dist/index.js",
   "scripts": {
-    "build": "babel --extensions '.ts' src -d dist",
+    "build": "npm run build-js && npm run build-types && npm run check-types",
+    "build-js": "babel --extensions '.ts' src -d dist",
     "build-types": "tsc --esModuleInterop --emitDeclarationOnly --declaration --declarationDir 'dist' src/*.ts",
     "check-types": "tsc --noEmit",
     "prestart": "rm -rf dist && npm run build",
