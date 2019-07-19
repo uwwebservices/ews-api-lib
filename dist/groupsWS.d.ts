@@ -1,5 +1,4 @@
-import { WebServiceConfig } from './common';
-import { Pfx } from './cert';
+import { BaseWebService } from './common';
 export interface UWGroup {
     id: string;
     created: number;
@@ -13,12 +12,7 @@ export interface UWGroupHistory {
     description: string;
     timestamp: number;
 }
-declare const _default: {
-    Config: WebServiceConfig;
-    /**
-     * Initial setup for GroupsWS library
-     */
-    Setup(certificate: Pfx, baseUrl: string): void;
+declare class GroupsWebService extends BaseWebService {
     /**
      * Searches GroupsWS for groups starting with the provided stemId and depth
      * @param stemId The stemId to search
@@ -34,7 +28,7 @@ declare const _default: {
      * @param memberType The type of member you're adding ('group', 'netid', 'dns') (default: 'group')
      * @returns An array of groups found with additional information.
      */
-    ReplaceMembers(group: string, members: string[], memberType?: string): Promise<any>;
+    ReplaceMembers(group: string, members: string[], memberType?: string): Promise<boolean>;
     /**
      * Replace group members with a preformatted member list
      * @param group Group to replace members
@@ -47,7 +41,7 @@ declare const _default: {
      * @param members The members to be added
      * @returns A flag representing if members were successfully added
      */
-    AddMembers(group: string, members: string[]): Promise<any>;
+    AddMembers(group: string, members: string[]): Promise<boolean>;
     /**
      * Add one member to a group
      * @param group The group to add a member to
@@ -86,7 +80,7 @@ declare const _default: {
      * @param email Enable email for this group? (default: false)
      * @returns Group was sucessfully created flag
      */
-    Create(group: string, admins: UWGroupMember[], readers?: UWGroupMember[], classification?: string, displayName?: string, description?: string, synchronized?: boolean, email?: boolean): Promise<UWGroup>;
+    Create(group: string, admins: UWGroupMember[], readers?: UWGroupMember[], classification?: string, displayName?: string, description?: string, synchronized?: boolean, email?: boolean): Promise<UWGroup | null>;
     /**
      * Remove multiple members from a group
      * @param group The group to remove members from
@@ -94,7 +88,7 @@ declare const _default: {
      * @param synchronized Wait until the group has been fully deleted before returning? (default: true)
      * @returns Members were successfully removed flag
      */
-    RemoveMembers(group: string, members: string[], synchronized?: boolean): Promise<any>;
+    RemoveMembers(group: string, members: string[], synchronized?: boolean): Promise<boolean>;
     /**
      * Remove a member from a group
      * @param group The group to remove a member from
@@ -111,5 +105,6 @@ declare const _default: {
      * @returns A list of group members (default: false)
      */
     GetMembers(group: string, effective?: boolean, force?: boolean): Promise<UWGroupMember[]>;
-};
+}
+declare const _default: GroupsWebService;
 export default _default;

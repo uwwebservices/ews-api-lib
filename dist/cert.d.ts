@@ -4,8 +4,9 @@ export interface Pfx {
     ca: any;
     incommon: any;
 }
-declare const _default: {
-    Config: Pfx;
+declare class Certificate {
+    protected Config: Pfx;
+    constructor();
     /**
      * Get the certificate from an AWS S3 bucket.
      * @param s3Bucket The bucket name
@@ -25,5 +26,10 @@ declare const _default: {
      * @returns A pfx.
      */
     GetPFXFromFS(pfxFilePath: string, passphraseFilePath: string, caFilePath: string, incommonFilePath: string): Pfx;
-};
+    /**
+     * Reset the setup for the certificate
+     */
+    Reset(): void;
+}
+declare const _default: Certificate;
 export default _default;

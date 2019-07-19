@@ -1,14 +1,6 @@
 /// <reference types="node" />
-import { WebServiceConfig } from './common';
-import { Pfx } from './cert';
-declare const _default: {
-    Config: WebServiceConfig;
-    /**
-     * Initial setup for IdCardWS library
-     * @param certificate
-     * @param baseUrl
-     */
-    Setup(certificate: Pfx, baseUrl: string): void;
+import { BaseWebService } from './common';
+declare class IDCardWebService extends BaseWebService {
     /**
      * Get the UWRegID of a person via the magstrip/rfid of their husky card
      * @param magstrip The magstrip of the card to lookup
@@ -23,5 +15,6 @@ declare const _default: {
      * @returns The photo or null
      */
     GetPhoto(regid: string, size?: string): Promise<Buffer>;
-};
+}
+declare const _default: IDCardWebService;
 export default _default;

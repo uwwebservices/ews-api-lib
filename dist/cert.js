@@ -11,14 +11,19 @@ var _fs = _interopRequireDefault(require("fs"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var _default = {
-  Config: {
-    pfx: null,
-    passphrase: null,
-    ca: null,
-    incommon: null
-  },
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
+class Certificate {
+  constructor() {
+    _defineProperty(this, "Config", void 0);
+
+    this.Config = {
+      pfx: null,
+      passphrase: null,
+      ca: null,
+      incommon: null
+    };
+  }
   /**
    * Get the certificate from an AWS S3 bucket.
    * @param s3Bucket The bucket name
@@ -28,6 +33,8 @@ var _default = {
    * @param s3Incommon The filename for the incommon file
    * @returns A pfx.
    */
+
+
   async GetPFXFromS3(s3Bucket, s3CertKey, s3PassKey, s3CAKey, s3Incommon) {
     const s3 = new _awsSdk.default.S3();
     let promises = []; // Check if we've already loaded data from S3
@@ -62,8 +69,7 @@ var _default = {
 
     await Promise.all(promises);
     return this.Config;
-  },
-
+  }
   /**
    * Get the certificate from a FS location.
    * @param pfxFilePath The filename for the cert files
@@ -72,6 +78,8 @@ var _default = {
    * @param incommonFilePath The filename for the incommon cert file
    * @returns A pfx.
    */
+
+
   GetPFXFromFS(pfxFilePath, passphraseFilePath, caFilePath, incommonFilePath) {
     if (!this.Config.pfx) {
       this.Config.pfx = _fs.default.readFileSync(pfxFilePath);
@@ -93,6 +101,22 @@ var _default = {
 
     return this.Config;
   }
+  /**
+   * Reset the setup for the certificate
+   */
 
-};
+
+  Reset() {
+    this.Config = {
+      pfx: null,
+      passphrase: null,
+      ca: null,
+      incommon: null
+    };
+  }
+
+}
+
+var _default = new Certificate();
+
 exports.default = _default;

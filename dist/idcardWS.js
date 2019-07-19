@@ -11,27 +11,7 @@ var _common = require("./common");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var _default = {
-  Config: {
-    certificate: {
-      pfx: null,
-      passphrase: null,
-      ca: null,
-      incommon: null
-    },
-    baseUrl: ''
-  },
-
-  /**
-   * Initial setup for IdCardWS library
-   * @param certificate
-   * @param baseUrl
-   */
-  Setup(certificate, baseUrl) {
-    this.Config.certificate = certificate;
-    this.Config.baseUrl = baseUrl;
-  },
-
+class IDCardWebService extends _common.BaseWebService {
   /**
    * Get the UWRegID of a person via the magstrip/rfid of their husky card
    * @param magstrip The magstrip of the card to lookup
@@ -39,7 +19,7 @@ var _default = {
    * @returns The UWRegID of the person or an empty string
    */
   async GetRegID(magstrip = '', rfid = '') {
-    const request = (0, _common.CreateRequest)(`${this.Config.baseUrl}/card.json?mag_strip_code=${magstrip}&prox_rfid=${rfid}`, this.Config.certificate);
+    const request = this.CreateRequest(`${this.Config.baseUrl}/card.json?mag_strip_code=${magstrip}&prox_rfid=${rfid}`, this.Config.certificate);
 
     try {
       return (await (0, _requestPromise.default)(request)).Cards[0].RegID;
@@ -47,16 +27,17 @@ var _default = {
       console.log('GetRegID Error', ex);
       return '';
     }
-  },
-
+  }
   /**
    * Get the photo of a person via their UWRegID
    * @param regid The UWRegID of the person for which to fetch a photo
    * @param size The size of the photo to fetch (small, medium, large)
    * @returns The photo or null
    */
+
+
   async GetPhoto(regid, size = 'medium') {
-    const request = (0, _common.CreateRequest)(`${this.Config.baseUrl}/photo/${regid}-${size}.jpg`, this.Config.certificate);
+    const request = this.CreateRequest(`${this.Config.baseUrl}/photo/${regid}-${size}.jpg`, this.Config.certificate);
 
     try {
       return Buffer.from((await (0, _requestPromise.default)(request)));
@@ -66,5 +47,8 @@ var _default = {
     }
   }
 
-};
+}
+
+var _default = new IDCardWebService();
+
 exports.default = _default;

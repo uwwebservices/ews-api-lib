@@ -33,7 +33,7 @@ let fscert = null;
 
 describe('Certificate Tests', function() {
   it('Should load certificate from file system and call WS', async function() {
-    certificate.Config = { pfx: null, passphrase: null, ca: null, incommon: null };
+    certificate.Reset();
     const fscert = certificate.GetPFXFromFS(fsPfxFilePath, fsPassphraseFilePath, fsUWCAFilePath, fsIncommonFilePath);
     pws.Setup(fscert, pwsBaseUrl);
 
@@ -41,7 +41,7 @@ describe('Certificate Tests', function() {
     assert.equal(testNetids[0], resp.UWNetID);
   });
   it('Should load files from S3 and call WS', async function() {
-    certificate.Config = { pfx: null, passphrase: null, ca: null, incommon: null };
+    certificate.Reset();
     const s3cert = await certificate.GetPFXFromS3(s3Bucket, s3PfxFileName, s3PassphraseFileName, s3UWCAFileName, s3IncommonCert);
     pws.Setup(s3cert, pwsBaseUrl);
 

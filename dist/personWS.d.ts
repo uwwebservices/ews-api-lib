@@ -1,6 +1,5 @@
-import { WebServiceConfig } from './common';
-import { Pfx } from './cert';
-interface PWSSearchResult {
+import { BaseWebService } from './common';
+export interface PWSSearchResult {
     Persons: UWPerson[];
     TotalCount: string;
     Size: string;
@@ -15,20 +14,13 @@ export interface UWPerson {
         UWNetID: string;
     };
 }
-declare const _default: {
-    Config: WebServiceConfig;
-    /**
-     * Initial setup for PersonWS library
-     * @param certificate
-     * @param baseUrl
-     */
-    Setup(certificate: Pfx, baseUrl: string): void;
+declare class PersonWebService extends BaseWebService {
     /**
      * Get information for a person via PersonWS.
      * @param identifier The identifer (UWNetID or UWRegID) of the person to lookup
      * @returns Data representing a person or null
      */
-    Get(identifier: string, full?: boolean): Promise<UWPerson>;
+    Get(identifier: string, full?: boolean): Promise<UWPerson | null>;
     /**
      * Get information for people via PersonWS.
      * @param identifiers The identifers (UWNetID or UWRegID) of the people to lookup
@@ -45,5 +37,6 @@ declare const _default: {
      * @returns Data representing a person or empty list
      */
     Search(query: string, pageSize?: string, pageStart?: string): Promise<PWSSearchResult>;
-};
+}
+declare const _default: PersonWebService;
 export default _default;

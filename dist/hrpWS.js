@@ -11,34 +11,14 @@ var _common = require("./common");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var _default = {
-  Config: {
-    certificate: {
-      pfx: null,
-      passphrase: null,
-      ca: null,
-      incommon: null
-    },
-    baseUrl: ''
-  },
-
-  /**
-   * Initial setup for HRPWS library
-   * @param certificate
-   * @param baseUrl
-   */
-  Setup(certificate, baseUrl) {
-    this.Config.certificate = certificate;
-    this.Config.baseUrl = baseUrl;
-  },
-
+class HRPWebService extends _common.BaseWebService {
   /**
    * Get information for a person via HRPWS.
    * @param identifier - The identifer (UWNetID or UWRegID) of the person to lookup
    * @returns Data representing a person or null
    */
   async Get(identifier) {
-    const request = (0, _common.CreateRequest)(`${this.Config.baseUrl}/worker/${identifier}.json`, this.Config.certificate);
+    const request = this.CreateRequest(`${this.Config.baseUrl}/worker/${identifier}.json`, this.Config.certificate);
 
     try {
       return await (0, _requestPromise.default)(request);
@@ -48,5 +28,8 @@ var _default = {
     }
   }
 
-};
+}
+
+var _default = new HRPWebService();
+
 exports.default = _default;

@@ -11,27 +11,7 @@ var _common = require("./common");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var _default = {
-  Config: {
-    certificate: {
-      pfx: null,
-      passphrase: null,
-      ca: null,
-      incommon: null
-    },
-    baseUrl: ''
-  },
-
-  /**
-   * Initial setup for PersonWS library
-   * @param certificate
-   * @param baseUrl
-   */
-  Setup(certificate, baseUrl) {
-    this.Config.certificate = certificate;
-    this.Config.baseUrl = baseUrl;
-  },
-
+class PersonWebService extends _common.BaseWebService {
   /**
    * Get information for a person via PersonWS.
    * @param identifier The identifer (UWNetID or UWRegID) of the person to lookup
@@ -42,7 +22,7 @@ var _default = {
       identifier = identifier + '/full';
     }
 
-    const request = (0, _common.CreateRequest)(`${this.Config.baseUrl}/person/${identifier}.json`, this.Config.certificate);
+    const request = this.CreateRequest(`${this.Config.baseUrl}/person/${identifier}.json`, this.Config.certificate);
 
     try {
       return await (0, _requestPromise.default)(request);
@@ -50,8 +30,7 @@ var _default = {
       console.log('Get Error', ex);
       return null;
     }
-  },
-
+  }
   /**
    * Get information for people via PersonWS.
    * @param identifiers The identifers (UWNetID or UWRegID) of the people to lookup
@@ -59,6 +38,8 @@ var _default = {
    * @param key The key to use (uwnetid or uwregid)
    * @returns The information belonging to that people or null
    */
+
+
   async GetMany(identifiers, batchSize = 15, key = 'uwnetid') {
     let start = 0;
     let end = start + batchSize > identifiers.length ? identifiers.length : start + batchSize;
@@ -69,7 +50,7 @@ var _default = {
         Persons: []
       };
       const ids = identifiers.slice(start, end);
-      const request = (0, _common.CreateRequest)(`${this.Config.baseUrl}/person.json?${key}=${ids.join(',')}&verbose=true`, this.Config.certificate); // Breakout if no members
+      const request = this.CreateRequest(`${this.Config.baseUrl}/person.json?${key}=${ids.join(',')}&verbose=true`, this.Config.certificate); // Breakout if no members
 
       if (ids.length == 0) {
         break;
@@ -94,8 +75,7 @@ var _default = {
     }
 
     return filtered;
-  },
-
+  }
   /**
    * PWS Search by query
    * @param query The identifer (UWNetID or UWRegID) of the person to lookup
@@ -103,8 +83,10 @@ var _default = {
    * @param pageStart What page to start on
    * @returns Data representing a person or empty list
    */
+
+
   async Search(query, pageSize = '10', pageStart = '1') {
-    const request = (0, _common.CreateRequest)(`${this.Config.baseUrl}/person.json?${query}&page_size=${pageSize}&page_start=${pageStart}`, this.Config.certificate);
+    const request = this.CreateRequest(`${this.Config.baseUrl}/person.json?${query}&page_size=${pageSize}&page_start=${pageStart}`, this.Config.certificate);
     let res = {
       Persons: [],
       TotalCount: '',
@@ -121,5 +103,8 @@ var _default = {
     return res;
   }
 
-};
+}
+
+var _default = new PersonWebService();
+
 exports.default = _default;

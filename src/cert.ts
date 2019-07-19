@@ -8,13 +8,17 @@ export interface Pfx {
   incommon: any;
 }
 
-export default {
-  Config: {
-    pfx: null,
-    passphrase: null,
-    ca: null,
-    incommon: null
-  } as Pfx,
+class Certificate {
+  protected Config: Pfx;
+
+  constructor() {
+    this.Config = {
+      pfx: null,
+      passphrase: null,
+      ca: null,
+      incommon: null
+    };
+  }
 
   /**
    * Get the certificate from an AWS S3 bucket.
@@ -25,7 +29,7 @@ export default {
    * @param s3Incommon The filename for the incommon file
    * @returns A pfx.
    */
-  async GetPFXFromS3(s3Bucket: string, s3CertKey: string, s3PassKey: string, s3CAKey: string, s3Incommon: string) {
+  public async GetPFXFromS3(s3Bucket: string, s3CertKey: string, s3PassKey: string, s3CAKey: string, s3Incommon: string) {
     const s3 = new aws.S3();
     let promises = [];
 
@@ -65,7 +69,7 @@ export default {
     await Promise.all(promises);
 
     return this.Config as Pfx;
-  },
+  }
 
   /**
    * Get the certificate from a FS location.
@@ -75,7 +79,7 @@ export default {
    * @param incommonFilePath The filename for the incommon cert file
    * @returns A pfx.
    */
-  GetPFXFromFS(pfxFilePath: string, passphraseFilePath: string, caFilePath: string, incommonFilePath: string) {
+  public GetPFXFromFS(pfxFilePath: string, passphraseFilePath: string, caFilePath: string, incommonFilePath: string) {
     if (!this.Config.pfx) {
       this.Config.pfx = fs.readFileSync(pfxFilePath);
     }
@@ -90,4 +94,18 @@ export default {
     }
     return this.Config as Pfx;
   }
-};
+
+  /**
+   * Reset the setup for the certificate
+   */
+  public Reset() {
+    this.Config = {
+      pfx: null,
+      passphrase: null,
+      ca: null,
+      incommon: null
+    };
+  }
+}
+
+export default new Certificate();
