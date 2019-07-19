@@ -1,18 +1,26 @@
-"use strict";
+import rp from 'request-promise';
+import { WebServiceConfig, CreateRequest } from './common';
+import { Pfx } from './cert';
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
+export interface UWGroup {
+  id: string;
+  created: number;
+}
 
-var _requestPromise = _interopRequireDefault(require("request-promise"));
+export interface UWGroupMember {
+  type: string;
+  id: string;
+}
 
-var _common = require("./common");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+export interface UWGroupHistory {
+  id: string;
+  description: string;
+  timestamp: number;
+}
 
 const GWSTimeout = 60000;
-var _default = {
+
+export default {
   Config: {
     certificate: {
       pfx: null,
@@ -21,12 +29,12 @@ var _default = {
       incommon: null
     },
     baseUrl: ''
-  },
+  } as WebServiceConfig,
 
   /**
    * Initial setup for GroupsWS library
    */
-  Setup(certificate, baseUrl) {
+  Setup(certificate: Pfx, baseUrl: string) {
     this.Config.certificate = certificate;
     this.Config.baseUrl = baseUrl;
   },
@@ -38,11 +46,11 @@ var _default = {
    * @param extraQueryParams Extra query parameters as a string. MUST start with '&'
    * @returns An array of groups found matching the stemId
    */
-  async Search(stemId, depth = 'one', extraQueryParams = '') {
-    const request = (0, _common.CreateRequest)(`${this.Config.baseUrl}/search?stem=${stemId}&scope=${depth}${extraQueryParams}`, this.Config.certificate, 'GET', {}, GWSTimeout);
+  async Search(stemId: string, depth: string = 'one', extraQueryParams: string = '') {
+    const request = CreateRequest(`${this.Config.baseUrl}/search?stem=${stemId}&scope=${depth}${extraQueryParams}`, this.Config.certificate, 'GET', {}, GWSTimeout);
 
     try {
-      let wsGroups = (await (0, _requestPromise.default)(request)).data;
+      let wsGroups: UWGroup[] = (await rp(request)).data;
       return wsGroups.map(group => group.id);
     } catch (error) {
       console.log(`GroupSearch: Error trying to search ${stemId}; ${error}`);
@@ -57,11 +65,8 @@ var _default = {
    * @param memberType The type of member you're adding ('group', 'netid', 'dns') (default: 'group')
    * @returns An array of groups found with additional information.
    */
-  async ReplaceMembers(group, members, memberType = 'group') {
-    return this.ReplaceMembersFormatted(group, members.map(id => ({
-      type: memberType,
-      id
-    })));
+  async ReplaceMembers(group: string, members: string[], memberType: string = 'group') {
+    return this.ReplaceMembersFormatted(group, members.map(id => ({ type: memberType, id })));
   },
 
   /**
@@ -69,13 +74,10 @@ var _default = {
    * @param group Group to replace members
    * @param formattedMembers Formatted member list (eg. [{ type: 'netid', id: 'foobar93'}])
    */
-  async ReplaceMembersFormatted(group, formattedMembers) {
-    const request = (0, _common.CreateRequest)(`${this.Config.baseUrl}/group/${group}/member`, this.Config.certificate, 'PUT', {
-      data: formattedMembers
-    }, GWSTimeout);
-
+  async ReplaceMembersFormatted(group: string, formattedMembers: UWGroupMember[]) {
+    const request = CreateRequest(`${this.Config.baseUrl}/group/${group}/member`, this.Config.certificate, 'PUT', { data: formattedMembers }, GWSTimeout);
     try {
-      let resp = await (0, _requestPromise.default)(request);
+      let resp = await rp(request);
       return resp.errors[0].status === 200;
     } catch (error) {
       console.log(`ReplaceMembers: Error trying to add members to ${group}; ${error}`);
@@ -89,7 +91,7 @@ var _default = {
    * @param members The members to be added
    * @returns A flag representing if members were successfully added
    */
-  async AddMembers(group, members) {
+  async AddMembers(group: string, members: string[]) {
     return await this.AddMember(group, members.join(','));
   },
 
@@ -99,11 +101,10 @@ var _default = {
    * @param member The member to add to the specified group
    * @returns A flag representing if the action was completed successfully
    */
-  async AddMember(group, member) {
-    const request = (0, _common.CreateRequest)(`${this.Config.baseUrl}/group/${group}/member/${member}`, this.Config.certificate, 'PUT', {}, GWSTimeout);
-
+  async AddMember(group: string, member: string) {
+    const request = CreateRequest(`${this.Config.baseUrl}/group/${group}/member/${member}`, this.Config.certificate, 'PUT', {}, GWSTimeout);
     try {
-      const resp = await (0, _requestPromise.default)(request);
+      const resp = await rp(request);
       return resp.errors[0].status === 200;
     } catch (error) {
       console.log(`AddMember: Error trying to add ${member} to ${group}; ${error}`);
@@ -116,23 +117,28 @@ var _default = {
    * @param groups The groups to lookup
    * @returns An array of groups found with additional information
    */
-  async Info(groups) {
-    const infoGroups = [];
-    await Promise.all(groups.map(group => {
-      const request = (0, _common.CreateRequest)(`${this.Config.baseUrl}/group/${group}`, this.Config.certificate, 'GET', {}, GWSTimeout);
-      return (0, _requestPromise.default)(request).then(resp => {
-        //console.log(`Got info for a group (${group}) in ${(+new Date() - +start).toString()}ms`);
-        const wsGroup = resp.data; // the data to extract
+  async Info(groups: string[]) {
+    const infoGroups: UWGroup[] = [];
+    await Promise.all(
+      groups.map(group => {
+        const request = CreateRequest(`${this.Config.baseUrl}/group/${group}`, this.Config.certificate, 'GET', {}, GWSTimeout);
+        return rp(request)
+          .then(resp => {
+            //console.log(`Got info for a group (${group}) in ${(+new Date() - +start).toString()}ms`);
+            const wsGroup = resp.data;
+            // the data to extract
+            infoGroups.push({
+              id: wsGroup.id,
+              created: wsGroup.created
+            });
+          })
+          .catch(error => {
+            console.log(`Info: Error trying to fetch info for ${group}; ${error}`);
+            return [];
+          });
+      })
+    );
 
-        infoGroups.push({
-          id: wsGroup.id,
-          created: wsGroup.created
-        });
-      }).catch(error => {
-        console.log(`Info: Error trying to fetch info for ${group}; ${error}`);
-        return [];
-      });
-    }));
     return infoGroups;
   },
 
@@ -141,24 +147,24 @@ var _default = {
    * @param group The group for which to get history
    * @returns The group history
    */
-  async GetHistory(group) {
-    let history = [];
+  async GetHistory(group: string) {
+    let history: UWGroupHistory[] = [];
     let start = 0;
     let fetchHistory = true;
 
     while (fetchHistory) {
-      const request = (0, _common.CreateRequest)(`${this.Config.baseUrl}/group/${group}/history?activity=membership&order=a&start=${start}`, this.Config.certificate, 'GET', {}, GWSTimeout);
-
+      const request = CreateRequest(`${this.Config.baseUrl}/group/${group}/history?activity=membership&order=a&start=${start}`, this.Config.certificate, 'GET', {}, GWSTimeout);
       try {
-        let res = await (0, _requestPromise.default)(request); // Breakout if no data available
+        let res = await rp(request);
 
+        // Breakout if no data available
         if (!res || !res.data || res.data.length == 0) {
           fetchHistory = false;
           break;
         }
 
         history = history.concat(res.data);
-        start = res.data.reduce((prev, current) => {
+        start = (res.data as UWGroupHistory[]).reduce((prev, current) => {
           return prev > current.timestamp ? prev : current.timestamp + 1;
         }, start);
       } catch (ex) {
@@ -175,22 +181,23 @@ var _default = {
    * @param synchronized Wait until the group has been fully deleted before returning? (default: false)
    * @returns An array of groups deleted in GroupsWS
    */
-  async Delete(groups, synchronized = false) {
-    const deletedGroups = [];
-    await Promise.all(groups.map(async group => {
-      const request = (0, _common.CreateRequest)(`${this.Config.baseUrl}/group/${group}?synchronized=${synchronized}`, this.Config.certificate, 'DELETE', {}, GWSTimeout);
-
-      try {
-        const resp = await (0, _requestPromise.default)(request);
-
-        if (Array.isArray(resp.errors) && resp.errors.length > 0 && resp.errors[0].status === 200) {
-          deletedGroups.push(group);
+  async Delete(groups: string[], synchronized: boolean = false) {
+    const deletedGroups: string[] = [];
+    await Promise.all(
+      groups.map(async group => {
+        const request = CreateRequest(`${this.Config.baseUrl}/group/${group}?synchronized=${synchronized}`, this.Config.certificate, 'DELETE', {}, GWSTimeout);
+        try {
+          const resp = await rp(request);
+          if (Array.isArray(resp.errors) && resp.errors.length > 0 && resp.errors[0].status === 200) {
+            deletedGroups.push(group);
+          }
+        } catch (error) {
+          console.log(`Delete: Error trying to delete ${group}; ${error}`);
+          return [];
         }
-      } catch (error) {
-        console.log(`Delete: Error trying to delete ${group}; ${error}`);
-        return [];
-      }
-    }));
+      })
+    );
+
     return deletedGroups;
   },
 
@@ -206,11 +213,19 @@ var _default = {
    * @param email Enable email for this group? (default: false)
    * @returns Group was sucessfully created flag
    */
-  async Create(group, admins, readers = [], classification = 'u', displayName = '', description = '', synchronized = true, email = false) {
+  async Create(
+    group: string,
+    admins: UWGroupMember[],
+    readers: UWGroupMember[] = [],
+    classification: string = 'u',
+    displayName: string = '',
+    description: string = '',
+    synchronized: boolean = true,
+    email: boolean = false
+  ): Promise<UWGroup | null> {
     if (!group || !admins) {
       return null;
     }
-
     const body = {
       data: {
         id: group,
@@ -221,15 +236,13 @@ var _default = {
         classification
       }
     };
-    const request = (0, _common.CreateRequest)(`${this.Config.baseUrl}/group/${group}?synchronized=${synchronized}`, this.Config.certificate, 'PUT', body, GWSTimeout);
+    const request = CreateRequest(`${this.Config.baseUrl}/group/${group}?synchronized=${synchronized}`, this.Config.certificate, 'PUT', body, GWSTimeout);
 
     try {
-      let res = await (0, _requestPromise.default)(request);
-
+      let res = await rp(request);
       if (email) {
-        await (0, _requestPromise.default)((0, _common.CreateRequest)(`${this.Config.baseUrl}/group/${group}/affiliate/google?status=active&sender=member`, this.Config.certificate, 'PUT', GWSTimeout));
+        await rp(CreateRequest(`${this.Config.baseUrl}/group/${group}/affiliate/google?status=active&sender=member`, this.Config.certificate, 'PUT', GWSTimeout));
       }
-
       return res.data;
     } catch (error) {
       console.log(`Create: Error trying to create ${group}; ${error}`);
@@ -244,7 +257,7 @@ var _default = {
    * @param synchronized Wait until the group has been fully deleted before returning? (default: true)
    * @returns Members were successfully removed flag
    */
-  async RemoveMembers(group, members, synchronized = true) {
+  async RemoveMembers(group: string, members: string[], synchronized: boolean = true) {
     return await this.RemoveMember(group, members.join(','), synchronized);
   },
 
@@ -255,11 +268,10 @@ var _default = {
    * @param synchronized Wait until the group has been fully deleted before returning? (default: true)
    * @returns Member was successfully removed flag
    */
-  async RemoveMember(group, member, synchronized = true) {
-    const request = (0, _common.CreateRequest)(`${this.Config.baseUrl}/group/${group}/member/${member}?synchronized=${synchronized.toString()}`, this.Config.certificate, 'DELETE', {}, GWSTimeout);
-
+  async RemoveMember(group: string, member: string, synchronized: boolean = true) {
+    const request = CreateRequest(`${this.Config.baseUrl}/group/${group}/member/${member}?synchronized=${synchronized.toString()}`, this.Config.certificate, 'DELETE', {}, GWSTimeout);
     try {
-      const resp = await (0, _requestPromise.default)(request);
+      const resp = await rp(request);
       return resp.errors[0].status === 200;
     } catch (error) {
       console.log(`RemoveMembers: Error trying to remove ${member} from ${group}; ${error}`);
@@ -274,18 +286,15 @@ var _default = {
    * @param force Force GWS to not use it's cached value (default: false)
    * @returns A list of group members (default: false)
    */
-  async GetMembers(group, effective = false, force = false) {
+  async GetMembers(group: string, effective: boolean = false, force: boolean = false) {
     const endpoint = effective ? 'effective_member' : 'member';
-    const request = (0, _common.CreateRequest)(`${this.Config.baseUrl}/group/${group}/${endpoint}${force ? '?source=registry' : ''}`, this.Config.certificate, 'GET', {}, GWSTimeout);
-
+    const request = CreateRequest(`${this.Config.baseUrl}/group/${group}/${endpoint}${force ? '?source=registry' : ''}`, this.Config.certificate, 'GET', {}, GWSTimeout);
     try {
-      const res = await (0, _requestPromise.default)(request);
-      return res.data;
+      const res = await rp(request);
+      return res.data as UWGroupMember[];
     } catch (error) {
       console.log(`Get Members: Error getting members for group ${group}; ${error}`);
       return [];
     }
   }
-
 };
-exports.default = _default;

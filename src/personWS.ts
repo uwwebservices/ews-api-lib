@@ -1,17 +1,25 @@
-"use strict";
+import rp from 'request-promise';
+import { WebServiceConfig, CreateRequest } from './common';
+import { Pfx } from './cert';
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
+interface PWSSearchResult {
+  Persons: UWPerson[];
+  TotalCount: string;
+  Size: string;
+  PageStart: string;
+}
 
-var _requestPromise = _interopRequireDefault(require("request-promise"));
+export interface UWPerson {
+  UWNetID: string;
+  UWRegID: string;
+  DisplayName: string;
+  EduPersonAffiliations: string[];
+  PersonURI: {
+    UWNetID: string;
+  };
+}
 
-var _common = require("./common");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var _default = {
+export default {
   Config: {
     certificate: {
       pfx: null,
@@ -20,14 +28,14 @@ var _default = {
       incommon: null
     },
     baseUrl: ''
-  },
+  } as WebServiceConfig,
 
   /**
    * Initial setup for PersonWS library
    * @param certificate
    * @param baseUrl
    */
-  Setup(certificate, baseUrl) {
+  Setup(certificate: Pfx, baseUrl: string) {
     this.Config.certificate = certificate;
     this.Config.baseUrl = baseUrl;
   },
@@ -37,15 +45,13 @@ var _default = {
    * @param identifier The identifer (UWNetID or UWRegID) of the person to lookup
    * @returns Data representing a person or null
    */
-  async Get(identifier, full = false) {
+  async Get(identifier: string, full: boolean = false): Promise<UWPerson | null> {
     if (full) {
       identifier = identifier + '/full';
     }
-
-    const request = (0, _common.CreateRequest)(`${this.Config.baseUrl}/person/${identifier}.json`, this.Config.certificate);
-
+    const request = CreateRequest(`${this.Config.baseUrl}/person/${identifier}.json`, this.Config.certificate);
     try {
-      return await (0, _requestPromise.default)(request);
+      return await rp(request);
     } catch (ex) {
       console.log('Get Error', ex);
       return null;
@@ -59,29 +65,29 @@ var _default = {
    * @param key The key to use (uwnetid or uwregid)
    * @returns The information belonging to that people or null
    */
-  async GetMany(identifiers, batchSize = 15, key = 'uwnetid') {
+  async GetMany(identifiers: string[], batchSize: number = 15, key: string = 'uwnetid') {
     let start = 0;
     let end = start + batchSize > identifiers.length ? identifiers.length : start + batchSize;
-    const filtered = [];
+    const filtered: UWPerson[] = [];
 
     while (end <= identifiers.length) {
       let res = {
-        Persons: []
+        Persons: [] as UWPerson[]
       };
       const ids = identifiers.slice(start, end);
-      const request = (0, _common.CreateRequest)(`${this.Config.baseUrl}/person.json?${key}=${ids.join(',')}&verbose=true`, this.Config.certificate); // Breakout if no members
+      const request = CreateRequest(`${this.Config.baseUrl}/person.json?${key}=${ids.join(',')}&verbose=true`, this.Config.certificate);
 
+      // Breakout if no members
       if (ids.length == 0) {
         break;
       }
 
       try {
-        res = await (0, _requestPromise.default)(request);
+        res = await rp(request);
       } catch (ex) {
         console.log('GetMany Error', ex);
-
         for (let _ of ids) {
-          res.Persons.push({});
+          res.Persons.push({} as UWPerson);
         }
       }
 
@@ -103,23 +109,21 @@ var _default = {
    * @param pageStart What page to start on
    * @returns Data representing a person or empty list
    */
-  async Search(query, pageSize = '10', pageStart = '1') {
-    const request = (0, _common.CreateRequest)(`${this.Config.baseUrl}/person.json?${query}&page_size=${pageSize}&page_start=${pageStart}`, this.Config.certificate);
+  async Search(query: string, pageSize: string = '10', pageStart: string = '1') {
+    const request = CreateRequest(`${this.Config.baseUrl}/person.json?${query}&page_size=${pageSize}&page_start=${pageStart}`, this.Config.certificate);
     let res = {
       Persons: [],
       TotalCount: '',
       Size: '',
       PageStart: ''
-    };
+    } as PWSSearchResult;
 
     try {
-      res = await (0, _requestPromise.default)(request);
+      res = await rp(request);
     } catch (ex) {
       console.log('Search Error', ex);
     }
 
     return res;
   }
-
 };
-exports.default = _default;

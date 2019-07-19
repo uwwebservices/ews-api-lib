@@ -1,52 +1,47 @@
-'use strict';
+"use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-
-var _cert = require('./cert');
-
-Object.defineProperty(exports, 'Certificate', {
+Object.defineProperty(exports, "Certificate", {
   enumerable: true,
   get: function () {
-    return _interopRequireDefault(_cert).default;
+    return _cert.default;
+  }
+});
+Object.defineProperty(exports, "GroupsWebService", {
+  enumerable: true,
+  get: function () {
+    return _groupsWS.default;
+  }
+});
+Object.defineProperty(exports, "PersonWebService", {
+  enumerable: true,
+  get: function () {
+    return _personWS.default;
+  }
+});
+Object.defineProperty(exports, "IDCardWebService", {
+  enumerable: true,
+  get: function () {
+    return _idcardWS.default;
+  }
+});
+Object.defineProperty(exports, "HRPWebService", {
+  enumerable: true,
+  get: function () {
+    return _hrpWS.default;
   }
 });
 
-var _groupsWS = require('./groupsWS');
+var _cert = _interopRequireDefault(require("./cert"));
 
-Object.defineProperty(exports, 'GroupsWebService', {
-  enumerable: true,
-  get: function () {
-    return _interopRequireDefault(_groupsWS).default;
-  }
-});
+var _groupsWS = _interopRequireDefault(require("./groupsWS"));
 
-var _personWS = require('./personWS');
+var _personWS = _interopRequireDefault(require("./personWS"));
 
-Object.defineProperty(exports, 'PersonWebService', {
-  enumerable: true,
-  get: function () {
-    return _interopRequireDefault(_personWS).default;
-  }
-});
+var _idcardWS = _interopRequireDefault(require("./idcardWS"));
 
-var _idcardWS = require('./idcardWS');
-
-Object.defineProperty(exports, 'IDCardWebService', {
-  enumerable: true,
-  get: function () {
-    return _interopRequireDefault(_idcardWS).default;
-  }
-});
-
-var _hrpWS = require('./hrpWS');
-
-Object.defineProperty(exports, 'HRPWebService', {
-  enumerable: true,
-  get: function () {
-    return _interopRequireDefault(_hrpWS).default;
-  }
-});
+var _hrpWS = _interopRequireDefault(require("./hrpWS"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }

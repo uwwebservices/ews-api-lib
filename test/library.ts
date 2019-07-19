@@ -1,9 +1,9 @@
 import { assert } from 'chai';
-import certificate from '../src/cert.js';
-import pws from '../src/personWS.js';
-import hrp from '../src/hrpWS.js';
-import idcard from '../src/idcardWS.js';
-import groups from '../src/groupsWS.js';
+import certificate from '../src/cert';
+import pws from '../src/personWS';
+import hrp from '../src/hrpWS';
+import idcard from '../src/idcardWS';
+import groups from '../src/groupsWS';
 import path from 'path';
 
 const s3Bucket = 'aisdev-certs';
@@ -33,7 +33,7 @@ let fscert = null;
 
 describe('Certificate Tests', function() {
   it('Should load certificate from file system and call WS', async function() {
-    certificate.Config = {};
+    certificate.Config = { pfx: null, passphrase: null, ca: null, incommon: null };
     const fscert = certificate.GetPFXFromFS(fsPfxFilePath, fsPassphraseFilePath, fsUWCAFilePath, fsIncommonFilePath);
     pws.Setup(fscert, pwsBaseUrl);
 
@@ -41,7 +41,7 @@ describe('Certificate Tests', function() {
     assert.equal(testNetids[0], resp.UWNetID);
   });
   it('Should load files from S3 and call WS', async function() {
-    certificate.Config = {};
+    certificate.Config = { pfx: null, passphrase: null, ca: null, incommon: null };
     const s3cert = await certificate.GetPFXFromS3(s3Bucket, s3PfxFileName, s3PassphraseFileName, s3UWCAFileName, s3IncommonCert);
     pws.Setup(s3cert, pwsBaseUrl);
 
@@ -97,7 +97,7 @@ describe('Webservice Tests', function() {
       assert.isTrue(resp2);
     });
     it('Should remove group members', async function() {
-      const removeOne = [testNetids[0]];
+      const removeOne = testNetids[0];
       const removeTwo = [testNetids[1], testEffectiveGroup];
       const resp1 = await groups.RemoveMember(testGroup, removeOne);
       assert.isTrue(resp1);

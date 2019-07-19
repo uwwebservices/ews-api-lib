@@ -1,16 +1,17 @@
-'use strict';
+"use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.default = void 0;
 
-var _requestPromise = require('request-promise');
+var _requestPromise = _interopRequireDefault(require("request-promise"));
 
-var _requestPromise2 = _interopRequireDefault(_requestPromise);
+var _common = require("./common");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-exports.default = {
+var _default = {
   Config: {
     certificate: {
       pfx: null,
@@ -21,41 +22,31 @@ exports.default = {
     baseUrl: ''
   },
 
+  /**
+   * Initial setup for HRPWS library
+   * @param certificate
+   * @param baseUrl
+   */
   Setup(certificate, baseUrl) {
     this.Config.certificate = certificate;
     this.Config.baseUrl = baseUrl;
   },
 
+  /**
+   * Get information for a person via HRPWS.
+   * @param identifier - The identifer (UWNetID or UWRegID) of the person to lookup
+   * @returns Data representing a person or null
+   */
   async Get(identifier) {
-    const request = this.CreateRequest(`${this.Config.baseUrl}/worker/${identifier}.json`, this.Config.certificate);
+    const request = (0, _common.CreateRequest)(`${this.Config.baseUrl}/worker/${identifier}.json`, this.Config.certificate);
+
     try {
-      return await (0, _requestPromise2.default)(request);
+      return await (0, _requestPromise.default)(request);
     } catch (ex) {
       console.log('Get Error', ex);
       return null;
     }
-  },
-
-  CreateRequest(url, certificate, method = 'GET', body = {}) {
-    let options = {
-      method,
-      url,
-      body,
-      json: true,
-      time: true,
-      ca: [],
-      agentOptions: {
-        pfx: certificate.pfx,
-        passphrase: certificate.passphrase,
-        securityOptions: 'SSL_OP_NO_SSLv3'
-      }
-    };
-    if (certificate.ca) {
-      options.ca.push(certificate.ca);
-    }
-    if (certificate.incommon) {
-      options.ca.push(certificate.incommon);
-    }
-    return options;
   }
+
 };
+exports.default = _default;
