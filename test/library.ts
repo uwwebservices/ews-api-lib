@@ -23,7 +23,7 @@ const fsIncommonFilePath = path.resolve('config/incommon.pem');
 const pwsBaseUrl = 'https://wseval.s.uw.edu/identity/v2';
 const hrpBaseUrl = 'https://wseval.s.uw.edu/hrp/v2';
 const idcardBaseUrl = 'https://wseval.s.uw.edu/idcard/v1';
-const groupsBaseUrl = 'https://groups.uw.edu/group_sws/v3';
+const groupsBaseUrl = 'https://eval.groups.uw.edu/group_sws/v3';
 const whocanwsBaseUrl = 'https://wseval.s.uw.edu/whocan/v1';
 
 const testGroup = 'uw_ais_sm_ews_ews-api-lib-test-group';
