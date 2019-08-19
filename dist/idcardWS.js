@@ -27,7 +27,7 @@ class IDCardWebService extends _common.BaseWebService {
     try {
       return (await this.MakeRequest(`${this.Config.baseUrl}/card.json?mag_strip_code=${magstrip}&prox_rfid=${rfid}`)).Cards[0].RegID;
     } catch (ex) {
-      console.log('GetRegID Error', ex);
+      console.log('GetRegID Error', ex.message);
       return '';
     }
   }
@@ -43,7 +43,7 @@ class IDCardWebService extends _common.BaseWebService {
     try {
       return Buffer.from((await this.MakeRequest(`${this.Config.baseUrl}/photo/${regid}-${size}.jpg`)));
     } catch (ex) {
-      console.log('GetPhoto Error', ex);
+      console.log('GetPhoto Error', ex.message);
       return null;
     }
   }

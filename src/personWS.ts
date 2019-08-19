@@ -67,7 +67,7 @@ class PersonWebService extends BaseWebService {
           res.Persons.push(null);
         }
       }
-
+      console.log(res.Persons);
       for (let person of res.Persons) {
         filtered.push(person);
       }

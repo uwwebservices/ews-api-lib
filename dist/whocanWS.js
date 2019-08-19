@@ -26,7 +26,7 @@ class WhoCanWebService extends _common.BaseWebService {
     try {
       return await this.MakeRequest(`${this.Config.baseUrl}/applications.json`);
     } catch (ex) {
-      console.log('Applications Error', ex);
+      console.log('Applications Error', ex.message);
       return null;
     }
   }
@@ -40,7 +40,7 @@ class WhoCanWebService extends _common.BaseWebService {
     try {
       return await this.MakeRequest(`${this.Config.baseUrl}/roles/${app}.json`);
     } catch (ex) {
-      console.log('Roles Error', ex);
+      console.log('Roles Error', ex.message);
       return null;
     }
   }
@@ -59,7 +59,7 @@ class WhoCanWebService extends _common.BaseWebService {
     try {
       return await this.MakeRequest(`${this.Config.baseUrl}/auth/${identifier}.json?app=${app}&role=${role}&mode=${mode}&hops=${hops}`, 'GET', {}, WhoCanTimeout);
     } catch (ex) {
-      console.log('Get Error', ex);
+      console.log('Get Error', ex.message);
       return null;
     }
   }
