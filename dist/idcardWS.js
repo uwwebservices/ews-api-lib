@@ -41,7 +41,7 @@ class IDCardWebService extends _common.BaseWebService {
 
   async GetPhoto(regid, size = PhotoSizes.Medium) {
     try {
-      return Buffer.from((await this.MakeRequest(`${this.Config.baseUrl}/photo/${regid}-${size}.jpg`)));
+      return Buffer.from((await this.MakeRequest(`${this.Config.baseUrl}/photo/${regid}-${size}.jpg`, 'GET', {}, 5000, null)));
     } catch (ex) {
       console.log('GetPhoto Error', ex.message);
       return null;

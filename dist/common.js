@@ -57,12 +57,14 @@ class BaseWebService {
    * @param url The full URL to make ar equest to
    * @param method HTTP Method to use (default: 'GET')
    * @param body A body object to send with the request (default: {})
-   * @returns A request/request-promise configuration object (default: 5000)
+   * @param timeout How long to wait before giving up on the call (default: 4000)
+   * @param encoding What encoding to expect (default: undefined)
+   * @returns A request/request-promise configuration object
    */
 
 
-  async MakeRequest(url, method = 'GET', body = {}, timeout = 5000) {
-    const request = this.CreateRequest(url, method, body, timeout);
+  async MakeRequest(url, method = 'GET', body = {}, timeout = 5000, encoding = undefined) {
+    const request = this.CreateRequest(url, method, body, timeout, encoding);
     return (0, _requestPromise.default)(request);
   }
   /**
@@ -70,11 +72,13 @@ class BaseWebService {
    * @param url The full URL to make ar equest to
    * @param method HTTP Method to use
    * @param body A body object to send with the request
+   * @param timeout How long to wait before giving up on the call
+   * @param encoding What encoding to expect
    * @returns A request/request-promise configuration object
    */
 
 
-  CreateRequest(url, method, body, timeout) {
+  CreateRequest(url, method, body, timeout, encoding = undefined) {
     const options = {
       method,
       url,
@@ -83,6 +87,7 @@ class BaseWebService {
       time: true,
       ca: [],
       timeout,
+      encoding,
       agentOptions: {
         pfx: this.Config.certificate.pfx,
         passphrase: this.Config.certificate.passphrase !== null ? this.Config.certificate.passphrase : '',
