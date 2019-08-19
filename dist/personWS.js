@@ -59,7 +59,7 @@ class PersonWebService extends _common.BaseWebService {
         }
       }
 
-      console.log(res.Persons);
+      console.log('ews-api-lib res', res);
 
       for (let person of res.Persons) {
         filtered.push(person);
