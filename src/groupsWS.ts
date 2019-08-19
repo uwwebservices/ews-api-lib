@@ -39,8 +39,8 @@ class GroupsWebService extends BaseWebService {
     try {
       let wsGroups = (await this.MakeRequest<{ data: UWGroup[] }>(`${this.Config.baseUrl}/search?stem=${stemId}&scope=${depth}${extraQueryParams}`, 'GET', {}, GWSTimeout)).data;
       return wsGroups.map(group => group.id);
-    } catch (error) {
-      console.log(`GroupSearch: Error trying to search ${stemId}; ${error}`);
+    } catch (ex) {
+      console.log(`GroupSearch: Error trying to search ${stemId}; ${ex.message}`);
       return [];
     }
   }
@@ -65,8 +65,8 @@ class GroupsWebService extends BaseWebService {
     try {
       let resp = await this.MakeRequest<GWSResponse>(`${this.Config.baseUrl}/group/${group}/member`, 'PUT', { data: formattedMembers }, GWSTimeout);
       return resp.errors[0].status === 200;
-    } catch (error) {
-      console.log(`ReplaceMembers: Error trying to add members to ${group}; ${error}`);
+    } catch (ex) {
+      console.log(`ReplaceMembers: Error trying to add members to ${group}; ${ex.message}`);
       return false;
     }
   }
@@ -91,8 +91,8 @@ class GroupsWebService extends BaseWebService {
     try {
       const resp = await this.MakeRequest<GWSResponse>(`${this.Config.baseUrl}/group/${group}/member/${member}`, 'PUT', {}, GWSTimeout);
       return resp.errors[0].status === 200;
-    } catch (error) {
-      console.log(`AddMember: Error trying to add ${member} to ${group}; ${error}`);
+    } catch (ex) {
+      console.log(`AddMember: Error trying to add ${member} to ${group}; ${ex.message}`);
       return false;
     }
   }
@@ -116,8 +116,8 @@ class GroupsWebService extends BaseWebService {
               created: wsGroup.created
             });
           })
-          .catch(error => {
-            console.log(`Info: Error trying to fetch info for ${group}; ${error}`);
+          .catch(ex => {
+            console.log(`Info: Error trying to fetch info for ${group}; ${ex.message}`);
             return [];
           });
       })
@@ -151,6 +151,7 @@ class GroupsWebService extends BaseWebService {
           return prev > current.timestamp ? prev : current.timestamp + 1;
         }, start);
       } catch (ex) {
+        console.log(ex.message);
         return null;
       }
     }
@@ -173,8 +174,8 @@ class GroupsWebService extends BaseWebService {
           if (Array.isArray(resp.errors) && resp.errors.length > 0 && resp.errors[0].status === 200) {
             deletedGroups.push(group);
           }
-        } catch (error) {
-          console.log(`Delete: Error trying to delete ${group}; ${error}`);
+        } catch (ex) {
+          console.log(`Delete: Error trying to delete ${group}; ${ex.message}`);
           return [];
         }
       })
@@ -225,8 +226,8 @@ class GroupsWebService extends BaseWebService {
         await this.MakeRequest(`${this.Config.baseUrl}/group/${group}/affiliate/google?status=active&sender=member`, 'PUT', GWSTimeout);
       }
       return res.data;
-    } catch (error) {
-      console.log(`Create: Error trying to create ${group}; ${error}`);
+    } catch (ex) {
+      console.log(`Create: Error trying to create ${group}; ${ex.message}`);
       return null;
     }
   }
@@ -253,8 +254,8 @@ class GroupsWebService extends BaseWebService {
     try {
       const resp = await this.MakeRequest<GWSResponse>(`${this.Config.baseUrl}/group/${group}/member/${member}?synchronized=${synchronized.toString()}`, 'DELETE', {}, GWSTimeout);
       return resp.errors[0].status === 200;
-    } catch (error) {
-      console.log(`RemoveMembers: Error trying to remove ${member} from ${group}; ${error}`);
+    } catch (ex) {
+      console.log(`RemoveMembers: Error trying to remove ${member} from ${group}; ${ex.message}`);
       return false;
     }
   }
@@ -271,8 +272,8 @@ class GroupsWebService extends BaseWebService {
     try {
       const res = await this.MakeRequest<GWSDataResponse<UWGroupMember[]>>(`${this.Config.baseUrl}/group/${group}/${endpoint}${force ? '?source=registry' : ''}`, 'GET', {}, GWSTimeout);
       return res.data;
-    } catch (error) {
-      console.log(`Get Members: Error getting members for group ${group}; ${error}`);
+    } catch (ex) {
+      console.log(`Get Members: Error getting members for group ${group}; ${ex.message}`);
       return [];
     }
   }

@@ -7,11 +7,13 @@ import groups from '../src/groupsWS';
 import whocan from '../src/whocanWS';
 import path from 'path';
 
-const s3Bucket = 'aisdev-certs';
-const s3PfxFileName = 'cert.pfx';
-const s3PassphraseFileName = 'passphrase.key';
-const s3UWCAFileName = 'uwca.pem';
-const s3IncommonCert = 'incommon.pem';
+const s3Bucket = 'ews-certs';
+const s3PfxFileName = 'aisdev/aisdev.cac.washington.edu.pfx';
+const s3PassphraseFileName = 'aisdev/aisdev.cac.washington.edu.key';
+//const s3PfxFileName = 'integrations/integrations.event.uw.edu.pfx';
+//const s3PassphraseFileName = 'integrations/integrations.event.uw.edu.key';
+const s3UWCAFileName = 'common/uwca.pem';
+const s3IncommonCert = 'common/incommon.pem';
 
 const fsPfxFilePath = path.resolve('config/cert.pfx');
 const fsPassphraseFilePath = path.resolve('config/passphrase.key');

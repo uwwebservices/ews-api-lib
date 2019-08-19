@@ -31,7 +31,7 @@ class PersonWebService extends BaseWebService {
     try {
       return await this.MakeRequest<UWPerson>(`${this.Config.baseUrl}/person/${identifier}.json`);
     } catch (ex) {
-      console.log('Get Error', ex);
+      console.log('Get Error', ex.message);
       return null;
     }
   }
@@ -62,7 +62,7 @@ class PersonWebService extends BaseWebService {
       try {
         res = await this.MakeRequest<PWSSearchResult>(`${this.Config.baseUrl}/person.json?${key}=${ids.join(',')}&verbose=true`);
       } catch (ex) {
-        console.log('GetMany Error', ex);
+        console.log('GetMany Error', ex.message);
         for (let _ of ids) {
           res.Persons.push(null);
         }
@@ -90,7 +90,7 @@ class PersonWebService extends BaseWebService {
     try {
       return await this.MakeRequest<PWSSearchResult>(`${this.Config.baseUrl}/person.json?${query}&page_size=${pageSize}&page_start=${pageStart}`);
     } catch (ex) {
-      console.log('Search Error', ex);
+      console.log('Search Error', ex.message);
       return { Persons: [], TotalCount: '', Size: '', PageStart: '' };
     }
   }

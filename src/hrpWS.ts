@@ -40,7 +40,7 @@ class HRPWebService extends BaseWebService {
     try {
       return await this.MakeRequest<UWWorker>(`${this.Config.baseUrl}/worker/${identifier}.json`);
     } catch (ex) {
-      console.log('Get Error', ex);
+      console.log('Get Error', ex.message);
       return null;
     }
   }
