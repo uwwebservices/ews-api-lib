@@ -1,4 +1,3 @@
-import rp from 'request-promise';
 import { BaseWebService } from './common';
 
 interface GWSResponse {
