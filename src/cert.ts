@@ -33,39 +33,31 @@ class Certificate {
     const s3 = new aws.S3();
     let promises = [];
 
-    // Check if we've already loaded data from S3
-    if (!this.Config.pfx) {
-      promises.push(
-        s3
-          .getObject({ Bucket: s3Bucket, Key: s3CertKey })
-          .promise()
-          .then(pfxFile => (this.Config.pfx = pfxFile.Body))
-      );
-    }
-    if (!this.Config.passphrase) {
-      promises.push(
-        s3
-          .getObject({ Bucket: s3Bucket, Key: s3PassKey })
-          .promise()
-          .then(passphrase => (this.Config.passphrase = passphrase.Body != null ? passphrase.Body.toString() : ''))
-      );
-    }
-    if (s3CAKey && !this.Config.ca) {
-      promises.push(
-        s3
-          .getObject({ Bucket: s3Bucket, Key: s3CAKey })
-          .promise()
-          .then(caFile => (this.Config.ca = caFile.Body))
-      );
-    }
-    if (s3Incommon && !this.Config.ca) {
-      promises.push(
-        s3
-          .getObject({ Bucket: s3Bucket, Key: s3Incommon })
-          .promise()
-          .then(caFile => (this.Config.incommon = caFile.Body))
-      );
-    }
+    promises.push(
+      s3
+        .getObject({ Bucket: s3Bucket, Key: s3CertKey })
+        .promise()
+        .then(pfxFile => (this.Config.pfx = pfxFile.Body))
+    );
+    promises.push(
+      s3
+        .getObject({ Bucket: s3Bucket, Key: s3PassKey })
+        .promise()
+        .then(passphrase => (this.Config.passphrase = passphrase.Body != null ? passphrase.Body.toString() : ''))
+    );
+    promises.push(
+      s3
+        .getObject({ Bucket: s3Bucket, Key: s3CAKey })
+        .promise()
+        .then(caFile => (this.Config.ca = caFile.Body))
+    );
+    promises.push(
+      s3
+        .getObject({ Bucket: s3Bucket, Key: s3Incommon })
+        .promise()
+        .then(caFile => (this.Config.incommon = caFile.Body))
+    );
+
     await Promise.all(promises);
 
     return this.Config as Pfx;
@@ -80,23 +72,15 @@ class Certificate {
    * @returns A pfx.
    */
   public GetPFXFromFS(pfxFilePath: string, passphraseFilePath: string, caFilePath: string, incommonFilePath: string) {
-    if (!this.Config.pfx) {
-      this.Config.pfx = fs.readFileSync(pfxFilePath);
-    }
-    if (!this.Config.passphrase) {
-      this.Config.passphrase = fs.readFileSync(passphraseFilePath, { encoding: 'utf8' }).toString();
-    }
-    if (caFilePath && !this.Config.ca) {
-      this.Config.ca = fs.readFileSync(caFilePath);
-    }
-    if (incommonFilePath && !this.Config.incommon) {
-      this.Config.ca = fs.readFileSync(incommonFilePath);
-    }
+    this.Config.pfx = fs.readFileSync(pfxFilePath);
+    this.Config.passphrase = fs.readFileSync(passphraseFilePath, { encoding: 'utf8' }).toString();
+    this.Config.ca = fs.readFileSync(caFilePath);
+    this.Config.ca = fs.readFileSync(incommonFilePath);
     return this.Config as Pfx;
   }
 
   /**
-   * Reset the setup for the certificate
+   * Reset the setup for the certificate (for tests)
    */
   public Reset() {
     this.Config = {
