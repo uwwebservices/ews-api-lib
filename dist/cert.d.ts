@@ -27,7 +27,7 @@ declare class Certificate {
      */
     GetPFXFromFS(pfxFilePath: string, passphraseFilePath: string, caFilePath: string, incommonFilePath: string): Pfx;
     /**
-     * Reset the setup for the certificate
+     * Reset the setup for the certificate (for tests)
      */
     Reset(): void;
 }
