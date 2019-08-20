@@ -74,6 +74,11 @@ describe('Webservice Tests', function() {
       const resp = await groups.Info([testGroup]);
       assert.equal(testGroup, resp[0].id);
     });
+    it('Should get filtered info about a group', async function() {
+      const filteredKeys = ['displayName', 'description', 'classification'];
+      const groupInfo = (await groups.Info([testGroup], filteredKeys))[0];
+      assert.hasAllKeys(groupInfo, [...filteredKeys, 'created', 'id']);
+    });
     it('Should search for test group', async function() {
       const resp = await groups.Search(testGroup, 'one');
       assert.include(resp, testGroup);
