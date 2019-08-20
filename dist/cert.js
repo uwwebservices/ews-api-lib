@@ -11,19 +11,7 @@ var _fs = _interopRequireDefault(require("fs"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 class Certificate {
-  constructor() {
-    _defineProperty(this, "Config", void 0);
-
-    this.Config = {
-      pfx: null,
-      passphrase: null,
-      ca: null,
-      incommon: null
-    };
-  }
   /**
    * Get the certificate from an AWS S3 bucket.
    * @param s3Bucket The bucket name
@@ -33,29 +21,29 @@ class Certificate {
    * @param s3Incommon The filename for the incommon file
    * @returns A pfx.
    */
-
-
   async GetPFXFromS3(s3Bucket, s3CertKey, s3PassKey, s3CAKey, s3Incommon) {
     const s3 = new _awsSdk.default.S3();
-    let promises = [];
-    promises.push(s3.getObject({
+    let Config = {
+      pfx: null,
+      passphrase: null,
+      ca: null,
+      incommon: null
+    };
+    let promises = [s3.getObject({
       Bucket: s3Bucket,
       Key: s3CertKey
-    }).promise().then(pfxFile => this.Config.pfx = pfxFile.Body));
-    promises.push(s3.getObject({
+    }).promise().then(pfxFile => Config.pfx = pfxFile.Body), s3.getObject({
       Bucket: s3Bucket,
       Key: s3PassKey
-    }).promise().then(passphrase => this.Config.passphrase = passphrase.Body != null ? passphrase.Body.toString() : ''));
-    promises.push(s3.getObject({
+    }).promise().then(passphrase => Config.passphrase = passphrase.Body != null ? passphrase.Body.toString() : ''), s3.getObject({
       Bucket: s3Bucket,
       Key: s3CAKey
-    }).promise().then(caFile => this.Config.ca = caFile.Body));
-    promises.push(s3.getObject({
+    }).promise().then(caFile => Config.ca = caFile.Body), s3.getObject({
       Bucket: s3Bucket,
       Key: s3Incommon
-    }).promise().then(caFile => this.Config.incommon = caFile.Body));
+    }).promise().then(incommonFile => Config.incommon = incommonFile.Body)];
     await Promise.all(promises);
-    return this.Config;
+    return Config;
   }
   /**
    * Get the certificate from a FS location.
@@ -68,26 +56,19 @@ class Certificate {
 
 
   GetPFXFromFS(pfxFilePath, passphraseFilePath, caFilePath, incommonFilePath) {
-    this.Config.pfx = _fs.default.readFileSync(pfxFilePath);
-    this.Config.passphrase = _fs.default.readFileSync(passphraseFilePath, {
-      encoding: 'utf8'
-    }).toString();
-    this.Config.ca = _fs.default.readFileSync(caFilePath);
-    this.Config.ca = _fs.default.readFileSync(incommonFilePath);
-    return this.Config;
-  }
-  /**
-   * Reset the setup for the certificate (for tests)
-   */
-
-
-  Reset() {
-    this.Config = {
+    let Config = {
       pfx: null,
       passphrase: null,
       ca: null,
       incommon: null
     };
+    Config.pfx = _fs.default.readFileSync(pfxFilePath);
+    Config.passphrase = _fs.default.readFileSync(passphraseFilePath, {
+      encoding: 'utf8'
+    }).toString();
+    Config.ca = _fs.default.readFileSync(caFilePath);
+    Config.ca = _fs.default.readFileSync(incommonFilePath);
+    return Config;
   }
 
 }
