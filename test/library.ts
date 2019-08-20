@@ -38,7 +38,6 @@ const testRole = 'analyst';
 
 describe('Certificate Tests', function() {
   it('Should load certificate from file system and call WS', async function() {
-    certificate.Reset();
     let resp = null;
     try {
       const fscert = certificate.GetPFXFromFS(fsPfxFilePath, fsPassphraseFilePath, fsUWCAFilePath, fsIncommonFilePath);
@@ -50,7 +49,6 @@ describe('Certificate Tests', function() {
     }
   });
   it('Should load files from S3 and call WS', async function() {
-    certificate.Reset();
     const s3cert = await certificate.GetPFXFromS3(s3Bucket, s3PfxFileName, s3PassphraseFileName, s3UWCAFileName, s3IncommonCert);
     pws.Setup(s3cert, pwsBaseUrl);
 

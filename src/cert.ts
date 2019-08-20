@@ -9,17 +9,6 @@ export interface Pfx {
 }
 
 class Certificate {
-  protected Config: Pfx;
-
-  constructor() {
-    this.Config = {
-      pfx: null,
-      passphrase: null,
-      ca: null,
-      incommon: null
-    };
-  }
-
   /**
    * Get the certificate from an AWS S3 bucket.
    * @param s3Bucket The bucket name
@@ -31,28 +20,29 @@ class Certificate {
    */
   public async GetPFXFromS3(s3Bucket: string, s3CertKey: string, s3PassKey: string, s3CAKey: string, s3Incommon: string) {
     const s3 = new aws.S3();
+    let Config: Pfx = { pfx: null, passphrase: null, ca: null, incommon: null };
     let promises = [
       s3
         .getObject({ Bucket: s3Bucket, Key: s3CertKey })
         .promise()
-        .then(pfxFile => (this.Config.pfx = pfxFile.Body)),
+        .then(pfxFile => (Config.pfx = pfxFile.Body)),
       s3
         .getObject({ Bucket: s3Bucket, Key: s3PassKey })
         .promise()
-        .then(passphrase => (this.Config.passphrase = passphrase.Body != null ? passphrase.Body.toString() : '')),
+        .then(passphrase => (Config.passphrase = passphrase.Body != null ? passphrase.Body.toString() : '')),
       s3
         .getObject({ Bucket: s3Bucket, Key: s3CAKey })
         .promise()
-        .then(caFile => (this.Config.ca = caFile.Body)),
+        .then(caFile => (Config.ca = caFile.Body)),
       s3
         .getObject({ Bucket: s3Bucket, Key: s3Incommon })
         .promise()
-        .then(incommonFile => (this.Config.incommon = incommonFile.Body))
+        .then(incommonFile => (Config.incommon = incommonFile.Body))
     ];
 
     await Promise.all(promises);
 
-    return this.Config as Pfx;
+    return Config;
   }
 
   /**
@@ -64,23 +54,13 @@ class Certificate {
    * @returns A pfx.
    */
   public GetPFXFromFS(pfxFilePath: string, passphraseFilePath: string, caFilePath: string, incommonFilePath: string) {
-    this.Config.pfx = fs.readFileSync(pfxFilePath);
-    this.Config.passphrase = fs.readFileSync(passphraseFilePath, { encoding: 'utf8' }).toString();
-    this.Config.ca = fs.readFileSync(caFilePath);
-    this.Config.ca = fs.readFileSync(incommonFilePath);
-    return this.Config as Pfx;
-  }
+    let Config: Pfx = { pfx: null, passphrase: null, ca: null, incommon: null };
 
-  /**
-   * Reset the setup for the certificate (for tests)
-   */
-  public Reset() {
-    this.Config = {
-      pfx: null,
-      passphrase: null,
-      ca: null,
-      incommon: null
-    };
+    Config.pfx = fs.readFileSync(pfxFilePath);
+    Config.passphrase = fs.readFileSync(passphraseFilePath, { encoding: 'utf8' }).toString();
+    Config.ca = fs.readFileSync(caFilePath);
+    Config.ca = fs.readFileSync(incommonFilePath);
+    return Config as Pfx;
   }
 }
 
