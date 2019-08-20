@@ -90,21 +90,31 @@ class GroupsWebService extends _common.BaseWebService {
   /**
    * Lookup groups in GroupsWS for additional information.
    * @param groups The groups to lookup
+   * @param whitelist The group properties to return (default: [] - return all info)
    * @returns An array of groups found with additional information
    */
 
 
-  async Info(groups) {
+  async Info(groups, whitelist = []) {
     const infoGroups = [];
     await Promise.all(groups.map(group => {
       return this.MakeRequest(`${this.Config.baseUrl}/group/${group}`, 'GET', {}, GWSTimeout).then(resp => {
-        //console.log(`Got info for a group (${group}) in ${(+new Date() - +start).toString()}ms`);
-        const wsGroup = resp.data; // the data to extract
+        const wsGroup = resp.data;
 
-        infoGroups.push({
-          id: wsGroup.id,
-          created: wsGroup.created
-        });
+        if (whitelist.length === 0) {
+          infoGroups.push(wsGroup);
+        } else {
+          let cleaned = {
+            id: wsGroup.id,
+            created: wsGroup.created
+          };
+
+          for (let w of whitelist) {
+            cleaned[w] = wsGroup[w];
+          }
+
+          infoGroups.push(cleaned);
+        }
       }).catch(ex => {
         console.log(`Info: Error trying to fetch info for ${group}; ${ex.message}`);
         return [];

@@ -52,9 +52,10 @@ declare class GroupsWebService extends BaseWebService {
     /**
      * Lookup groups in GroupsWS for additional information.
      * @param groups The groups to lookup
+     * @param whitelist The group properties to return (default: [] - return all info)
      * @returns An array of groups found with additional information
      */
-    Info(groups: string[]): Promise<UWGroup[]>;
+    Info(groups: string[], whitelist?: any[]): Promise<UWGroup[]>;
     /**
      * Get history data for a specific group
      * @param group The group for which to get history
