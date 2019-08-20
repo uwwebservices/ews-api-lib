@@ -39,11 +39,15 @@ const testRole = 'analyst';
 describe('Certificate Tests', function() {
   it('Should load certificate from file system and call WS', async function() {
     certificate.Reset();
-    const fscert = certificate.GetPFXFromFS(fsPfxFilePath, fsPassphraseFilePath, fsUWCAFilePath, fsIncommonFilePath);
-    pws.Setup(fscert, pwsBaseUrl);
-
-    const resp = await pws.Get(testNetids[0], true);
-    assert.equal(testNetids[0], resp.UWNetID);
+    let resp = null;
+    try {
+      const fscert = certificate.GetPFXFromFS(fsPfxFilePath, fsPassphraseFilePath, fsUWCAFilePath, fsIncommonFilePath);
+      pws.Setup(fscert, pwsBaseUrl);
+      resp = await pws.Get(testNetids[0], true);
+      assert.equal(testNetids[0], resp.UWNetID);
+    } catch (ex) {
+      assert.isNotNull(resp, 'Failed to load certificates from FS (did you copy certs to /config?)');
+    }
   });
   it('Should load files from S3 and call WS', async function() {
     certificate.Reset();
