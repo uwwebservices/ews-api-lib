@@ -31,32 +31,24 @@ class Certificate {
    */
   public async GetPFXFromS3(s3Bucket: string, s3CertKey: string, s3PassKey: string, s3CAKey: string, s3Incommon: string) {
     const s3 = new aws.S3();
-    let promises = [];
-
-    promises.push(
+    let promises = [
       s3
         .getObject({ Bucket: s3Bucket, Key: s3CertKey })
         .promise()
-        .then(pfxFile => (this.Config.pfx = pfxFile.Body))
-    );
-    promises.push(
+        .then(pfxFile => (this.Config.pfx = pfxFile.Body)),
       s3
         .getObject({ Bucket: s3Bucket, Key: s3PassKey })
         .promise()
-        .then(passphrase => (this.Config.passphrase = passphrase.Body != null ? passphrase.Body.toString() : ''))
-    );
-    promises.push(
+        .then(passphrase => (this.Config.passphrase = passphrase.Body != null ? passphrase.Body.toString() : '')),
       s3
         .getObject({ Bucket: s3Bucket, Key: s3CAKey })
         .promise()
-        .then(caFile => (this.Config.ca = caFile.Body))
-    );
-    promises.push(
+        .then(caFile => (this.Config.ca = caFile.Body)),
       s3
         .getObject({ Bucket: s3Bucket, Key: s3Incommon })
         .promise()
-        .then(caFile => (this.Config.incommon = caFile.Body))
-    );
+        .then(incommonFile => (this.Config.incommon = incommonFile.Body))
+    ];
 
     await Promise.all(promises);
 
