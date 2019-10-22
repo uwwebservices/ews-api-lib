@@ -1,7 +1,9 @@
 import { BaseWebService } from './common';
 export interface UWGroup {
+    [key: string]: any;
     id: string;
     created: number;
+    classification: string;
 }
 export interface UWGroupMember {
     type: string;
@@ -55,7 +57,7 @@ declare class GroupsWebService extends BaseWebService {
      * @param whitelist The group properties to return (default: [] - return all info)
      * @returns An array of groups found with additional information
      */
-    Info(groups: string[], whitelist?: any[]): Promise<UWGroup[]>;
+    Info(groups: string[], whitelist?: string[]): Promise<UWGroup[]>;
     /**
      * Get history data for a specific group
      * @param group The group for which to get history

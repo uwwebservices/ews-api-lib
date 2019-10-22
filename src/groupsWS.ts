@@ -9,8 +9,10 @@ interface GWSDataResponse<T> extends GWSResponse {
 }
 
 export interface UWGroup {
+  [key: string]: any;
   id: string;
   created: number;
+  classification: string;
 }
 
 export interface UWGroupMember {
@@ -102,7 +104,7 @@ class GroupsWebService extends BaseWebService {
    * @param whitelist The group properties to return (default: [] - return all info)
    * @returns An array of groups found with additional information
    */
-  public async Info(groups: string[], whitelist = []) {
+  public async Info(groups: string[], whitelist: string[] = []) {
     const infoGroups: UWGroup[] = [];
     await Promise.all(
       groups.map(group => {
@@ -112,14 +114,14 @@ class GroupsWebService extends BaseWebService {
             if (whitelist.length === 0) {
               infoGroups.push(wsGroup);
             } else {
-              let cleaned = {
+              let cleaned: Partial<UWGroup> = {
                 id: wsGroup.id,
                 created: wsGroup.created
               };
               for (let w of whitelist) {
                 cleaned[w] = wsGroup[w];
               }
-              infoGroups.push(cleaned);
+              infoGroups.push(cleaned as UWGroup);
             }
           })
           .catch(ex => {
