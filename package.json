@@ -19,7 +19,7 @@
   "license": "MIT",
   "homepage": "https://github.com/uwwebservices/ews-api-lib#readme",
   "dependencies": {
-    "aws-sdk": "^2.337.0",
+    "aws-sdk": "^2.1354.0",
     "request": "^2.88.0",
     "request-promise": "^4.2.2"
   },
